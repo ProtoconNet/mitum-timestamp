@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	currencydigest "github.com/ProtoconNet/mitum-currency/v3/digest"
-	timestampservice "github.com/ProtoconNet/mitum-timestamp/state"
 	"sync"
 	"time"
 
@@ -279,83 +278,6 @@ func (bs *BlockSession) prepareCurrencies() error {
 	bs.currencyModels = currencyModels
 
 	return nil
-}
-
-func (bs *BlockSession) prepareTimeStamps() error {
-	if len(bs.sts) < 1 {
-		return nil
-	}
-
-	var timestampModels []mongo.WriteModel
-	for i := range bs.sts {
-		st := bs.sts[i]
-		switch {
-		case timestampservice.IsStateServiceDesignKey(st.Key()):
-			j, err := bs.handleTimeStampServiceDesignState(st)
-			if err != nil {
-				return err
-			}
-			timestampModels = append(timestampModels, j...)
-		case timestampservice.IsStateTimeStampItemKey(st.Key()):
-			j, err := bs.handleTimeStampItemState(st)
-			if err != nil {
-				return err
-			}
-			timestampModels = append(timestampModels, j...)
-		default:
-			continue
-		}
-	}
-
-	bs.timestampModels = timestampModels
-
-	return nil
-}
-
-func (bs *BlockSession) handleAccountState(st mitumbase.State) ([]mongo.WriteModel, error) {
-	if rs, err := currencydigest.NewAccountValue(st); err != nil {
-		return nil, err
-	} else if doc, err := currencydigest.NewAccountDoc(rs, bs.st.DatabaseEncoder()); err != nil {
-		return nil, err
-	} else {
-		return []mongo.WriteModel{mongo.NewInsertOneModel().SetDocument(doc)}, nil
-	}
-}
-
-func (bs *BlockSession) handleBalanceState(st mitumbase.State) ([]mongo.WriteModel, string, error) {
-	doc, address, err := currencydigest.NewBalanceDoc(st, bs.st.DatabaseEncoder())
-	if err != nil {
-		return nil, "", err
-	}
-	return []mongo.WriteModel{mongo.NewInsertOneModel().SetDocument(doc)}, address, nil
-}
-
-func (bs *BlockSession) handleCurrencyState(st mitumbase.State) ([]mongo.WriteModel, error) {
-	doc, err := currencydigest.NewCurrencyDoc(st, bs.st.DatabaseEncoder())
-	if err != nil {
-		return nil, err
-	}
-	return []mongo.WriteModel{mongo.NewInsertOneModel().SetDocument(doc)}, nil
-}
-
-func (bs *BlockSession) handleTimeStampServiceDesignState(st mitumbase.State) ([]mongo.WriteModel, error) {
-	if serviceDesignDoc, err := NewTimeStampServiceDesignDoc(st, bs.st.DatabaseEncoder()); err != nil {
-		return nil, err
-	} else {
-		return []mongo.WriteModel{
-			mongo.NewInsertOneModel().SetDocument(serviceDesignDoc),
-		}, nil
-	}
-}
-
-func (bs *BlockSession) handleTimeStampItemState(st mitumbase.State) ([]mongo.WriteModel, error) {
-	if TimeStampItemDoc, err := NewTimeStampItemDoc(st, bs.st.DatabaseEncoder()); err != nil {
-		return nil, err
-	} else {
-		return []mongo.WriteModel{
-			mongo.NewInsertOneModel().SetDocument(TimeStampItemDoc),
-		}, nil
-	}
 }
 
 func (bs *BlockSession) writeModels(ctx context.Context, col string, models []mongo.WriteModel) error {

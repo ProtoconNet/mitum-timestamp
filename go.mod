@@ -3,8 +3,8 @@ module github.com/ProtoconNet/mitum-timestamp
 go 1.20
 
 require (
-	github.com/ProtoconNet/mitum-currency/v3 v3.0.0-alpha.0.20230627094150-a26c20ed5765
-	github.com/ProtoconNet/mitum2 v0.0.0-20230621062736-ad0a8b8967c7
+	github.com/ProtoconNet/mitum-currency/v3 v3.0.0-alpha.0.20230712085716-238af6bf483e
+	github.com/ProtoconNet/mitum2 v0.0.0-20230704001603-99ed1a35ce71
 	github.com/alecthomas/kong v0.7.1
 	github.com/arl/statsviz v0.5.2
 	github.com/gorilla/mux v1.8.0
