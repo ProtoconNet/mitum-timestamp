@@ -36,7 +36,7 @@ var CLI struct { //nolint:govet //...
 		Timestamp cmds.TimestampCommand        `cmd:"" help:"timestamp operation"`
 	} `cmd:"" help:"create operation"`
 	Network struct {
-		Client launchcmd.NetworkClientCommand `cmd:"" help:"network client"`
+		Client cmds.NetworkClientCommand `cmd:"" help:"network client"`
 	} `cmd:"" help:"network"`
 	Key struct {
 		New     currencycmds.KeyNewCommand     `cmd:"" help:"generate new key"`
