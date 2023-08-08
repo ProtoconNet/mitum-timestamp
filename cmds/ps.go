@@ -15,7 +15,7 @@ import (
 	"github.com/ProtoconNet/mitum2/util/ps"
 )
 
-var PNameOperationProcessorsMap = ps.Name("mitum-credential-operation-processors-map")
+var PNameOperationProcessorsMap = ps.Name("mitum-timestamp-operation-processors-map")
 
 func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 	var isaacParams *isaac.Params

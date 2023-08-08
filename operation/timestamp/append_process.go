@@ -75,12 +75,12 @@ func (opp *AppendProcessor) PreProcess(
 	}
 
 	if err := state.CheckExistsState(statecurrency.StateKeyAccount(fact.Sender()), getStateFunc); err != nil {
-		return ctx, mitumbase.NewBaseOperationProcessReasonError("sender not found, %q: %w", fact.Sender(), err), nil
+		return ctx, mitumbase.NewBaseOperationProcessReasonError("sender not found, %q; %w", fact.Sender(), err), nil
 	}
 
 	_, err := state.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
 	if err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("currency not found, %q: %w", fact.Currency(), err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("currency not found, %q; %w", fact.Currency(), err), nil
 	}
 
 	if err := state.CheckNotExistsState(stateextension.StateKeyContractAccount(fact.Sender()), getStateFunc); err != nil {
@@ -88,18 +88,18 @@ func (opp *AppendProcessor) PreProcess(
 	}
 
 	if err := state.CheckFactSignsByState(fact.sender, op.Signs(), getStateFunc); err != nil {
-		return ctx, mitumbase.NewBaseOperationProcessReasonError("invalid signing: %w", err), nil
+		return ctx, mitumbase.NewBaseOperationProcessReasonError("invalid signing; %w", err), nil
 	}
 
 	_, err = state.ExistsState(statetimestamp.StateKeyServiceDesign(fact.target, fact.service), "key of service design", getStateFunc)
 	if err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("service design not found, %q: %w", fact.service, err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("service design not found, %q; %w", fact.service, err), nil
 	}
 
 	k := statetimestamp.StateKeyTimeStampLastIndex(fact.target, fact.service, fact.projectID)
 	switch _, _, err := getStateFunc(k); {
 	case err != nil:
-		return nil, mitumbase.NewBaseOperationProcessReasonError("getting timestamp item lastindex failed, %q: %w", fact.service, err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("getting timestamp item lastindex failed, %q; %w", fact.service, err), nil
 	}
 
 	_, found, err := opp.getLastBlockFunc()
@@ -125,12 +125,12 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 
 	st, err := state.ExistsState(statetimestamp.StateKeyServiceDesign(fact.target, fact.service), "key of service design", getStateFunc)
 	if err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("service design not found, %q: %w", fact.service, err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("service design not found, %q; %w", fact.service, err), nil
 	}
 
 	design, err := statetimestamp.StateServiceDesignValue(st)
 	if err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("service design value not found, %q: %w", fact.service, err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("service design value not found, %q; %w", fact.service, err), nil
 	}
 
 	design.AddProject(fact.projectID)
@@ -139,11 +139,11 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 	k := statetimestamp.StateKeyTimeStampLastIndex(fact.target, fact.service, fact.projectID)
 	switch st, found, err := getStateFunc(k); {
 	case err != nil:
-		return nil, mitumbase.NewBaseOperationProcessReasonError("getting timestamp item lastindex failed, %q: %w", fact.service, err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("getting timestamp item lastindex failed, %q; %w", fact.service, err), nil
 	case found:
 		i, err := statetimestamp.StateTimeStampLastIndexValue(st)
 		if err != nil {
-			return nil, mitumbase.NewBaseOperationProcessReasonError("getting timestamp item lastindex value failed, %q: %w", fact.service, err), nil
+			return nil, mitumbase.NewBaseOperationProcessReasonError("getting timestamp item lastindex value failed, %q; %w", fact.service, err), nil
 		}
 		idx = i + 1
 	case !found:
