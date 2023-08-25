@@ -3,9 +3,10 @@ package cmds
 import (
 	"context"
 	"fmt"
-	currencycmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
 	"io"
 	"os"
+
+	currencycmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
 
 	"github.com/ProtoconNet/mitum2/launch"
 	"github.com/ProtoconNet/mitum2/util"
@@ -30,6 +31,7 @@ func NewBaseCommand() *BaseCommand {
 }
 
 func (cmd *BaseCommand) prepare(pctx context.Context) (context.Context, error) {
+	cmd.Out = os.Stdout
 	pps := ps.NewPS("cmd")
 
 	_ = pps.
@@ -62,7 +64,7 @@ func (cmd *BaseCommand) print(f string, a ...interface{}) {
 }
 
 func PAddHinters(ctx context.Context) (context.Context, error) {
-	e := util.StringError("failed to add hinters")
+	e := util.StringError("add hinters")
 
 	var enc encoder.Encoder
 	if err := util.LoadFromContextOK(ctx, launch.EncoderContextKey, &enc); err != nil {
