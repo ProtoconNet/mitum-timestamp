@@ -82,10 +82,10 @@ func CheckDuplication(opr *currencyprocessor.OperationProcessor, op mitumbase.Op
 		did = fact.Currency().String()
 		didtype = DuplicationTypeCurrency
 	case currency.SuffrageInflation:
-	case timestamp.ServiceRegister:
-		fact, ok := t.Fact().(timestamp.ServiceRegisterFact)
+	case timestamp.CreateService:
+		fact, ok := t.Fact().(timestamp.CreateServiceFact)
 		if !ok {
-			return errors.Errorf("expected ServiceRegisterFact, not %T", t.Fact())
+			return errors.Errorf("expected CreateServiceFact, not %T", t.Fact())
 		}
 		did = fact.Sender().String()
 		didtype = DuplicationTypeSender
@@ -141,7 +141,7 @@ func GetNewProcessor(opr *currencyprocessor.OperationProcessor, op mitumbase.Ope
 		currency.CurrencyRegister,
 		currency.CurrencyPolicyUpdater,
 		currency.SuffrageInflation,
-		timestamp.ServiceRegister,
+		timestamp.CreateService,
 		timestamp.Append:
 		return nil, false, errors.Errorf("%T needs SetProcessor", t)
 	default:

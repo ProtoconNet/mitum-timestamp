@@ -2,13 +2,14 @@ package timestamp
 
 import (
 	"context"
+	"sync"
+
 	"github.com/ProtoconNet/mitum-currency/v3/common"
 	"github.com/ProtoconNet/mitum-currency/v3/state"
 	stateextension "github.com/ProtoconNet/mitum-currency/v3/state/extension"
 	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	statetimestamp "github.com/ProtoconNet/mitum-timestamp/state"
 	"github.com/ProtoconNet/mitum-timestamp/types"
-	"sync"
 
 	statecurrency "github.com/ProtoconNet/mitum-currency/v3/state/currency"
 	mitumbase "github.com/ProtoconNet/mitum2/base"
@@ -16,33 +17,33 @@ import (
 	"github.com/pkg/errors"
 )
 
-var serviceRegisterProcessorPool = sync.Pool{
+var createServiceProcessorPool = sync.Pool{
 	New: func() interface{} {
-		return new(ServiceRegisterProcessor)
+		return new(CreateServiceProcessor)
 	},
 }
 
-func (ServiceRegister) Process(
+func (CreateService) Process(
 	_ context.Context, _ mitumbase.GetStateFunc,
 ) ([]mitumbase.StateMergeValue, mitumbase.OperationProcessReasonError, error) {
 	return nil, nil, nil
 }
 
-type ServiceRegisterProcessor struct {
+type CreateServiceProcessor struct {
 	*mitumbase.BaseOperationProcessor
 }
 
-func NewServiceRegisterProcessor() currencytypes.GetNewProcessor {
+func NewCreateServiceProcessor() currencytypes.GetNewProcessor {
 	return func(
 		height mitumbase.Height,
 		getStateFunc mitumbase.GetStateFunc,
 		newPreProcessConstraintFunc mitumbase.NewOperationProcessorProcessFunc,
 		newProcessConstraintFunc mitumbase.NewOperationProcessorProcessFunc,
 	) (mitumbase.OperationProcessor, error) {
-		e := util.StringError("failed to create new ServiceRegisterProcessor")
+		e := util.StringError("failed to create new CreateServiceProcessor")
 
-		nopp := serviceRegisterProcessorPool.Get()
-		opp, ok := nopp.(*ServiceRegisterProcessor)
+		nopp := createServiceProcessorPool.Get()
+		opp, ok := nopp.(*CreateServiceProcessor)
 		if !ok {
 			return nil, errors.Errorf("expected servicesRegisterProcessor, not %T", nopp)
 		}
@@ -59,14 +60,14 @@ func NewServiceRegisterProcessor() currencytypes.GetNewProcessor {
 	}
 }
 
-func (opp *ServiceRegisterProcessor) PreProcess(
+func (opp *CreateServiceProcessor) PreProcess(
 	ctx context.Context, op mitumbase.Operation, getStateFunc mitumbase.GetStateFunc,
 ) (context.Context, mitumbase.OperationProcessReasonError, error) {
-	e := util.StringError("failed to preprocess serviceRegister")
+	e := util.StringError("failed to preprocess CreateService")
 
-	fact, ok := op.Fact().(ServiceRegisterFact)
+	fact, ok := op.Fact().(CreateServiceFact)
 	if !ok {
-		return ctx, nil, e.Errorf("expected ServiceRegisterFact, not %T", op.Fact())
+		return ctx, nil, e.Errorf("expected CreateServiceFact, not %T", op.Fact())
 	}
 
 	if err := fact.IsValid(nil); err != nil {
@@ -115,15 +116,15 @@ func (opp *ServiceRegisterProcessor) PreProcess(
 	return ctx, nil, nil
 }
 
-func (opp *ServiceRegisterProcessor) Process(
+func (opp *CreateServiceProcessor) Process(
 	_ context.Context, op mitumbase.Operation, getStateFunc mitumbase.GetStateFunc) (
 	[]mitumbase.StateMergeValue, mitumbase.OperationProcessReasonError, error,
 ) {
-	e := util.StringError("failed to process ServiceRegister")
+	e := util.StringError("failed to process CreateService")
 
-	fact, ok := op.Fact().(ServiceRegisterFact)
+	fact, ok := op.Fact().(CreateServiceFact)
 	if !ok {
-		return nil, nil, e.Errorf("expected ServiceRegisterFact, not %T", op.Fact())
+		return nil, nil, e.Errorf("expected CreateServiceFact, not %T", op.Fact())
 	}
 
 	sts := make([]mitumbase.StateMergeValue, 2)
@@ -174,8 +175,8 @@ func (opp *ServiceRegisterProcessor) Process(
 	return sts, nil, nil
 }
 
-func (opp *ServiceRegisterProcessor) Close() error {
-	serviceRegisterProcessorPool.Put(opp)
+func (opp *CreateServiceProcessor) Close() error {
+	createServiceProcessorPool.Put(opp)
 
 	return nil
 }

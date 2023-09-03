@@ -10,11 +10,11 @@ import (
 )
 
 var (
-	ServiceRegisterFactHint = hint.MustNewHint("mitum-timestamp-service-register-operation-fact-v0.0.1")
-	ServiceRegisterHint     = hint.MustNewHint("mitum-timestamp-service-register-operation-v0.0.1")
+	CreateServiceFactHint = hint.MustNewHint("mitum-timestamp-creates-service-operation-fact-v0.0.1")
+	CreateServiceHint     = hint.MustNewHint("mitum-timestamp-creates-service-operation-v0.0.1")
 )
 
-type ServiceRegisterFact struct {
+type CreateServiceFact struct {
 	mitumbase.BaseFact
 	sender   mitumbase.Address
 	target   mitumbase.Address
@@ -22,9 +22,9 @@ type ServiceRegisterFact struct {
 	currency types.CurrencyID
 }
 
-func NewServiceRegisterFact(token []byte, sender, target mitumbase.Address, service types.ContractID, currency types.CurrencyID) ServiceRegisterFact {
-	bf := mitumbase.NewBaseFact(ServiceRegisterFactHint, token)
-	fact := ServiceRegisterFact{
+func NewCreateServiceFact(token []byte, sender, target mitumbase.Address, service types.ContractID, currency types.CurrencyID) CreateServiceFact {
+	bf := mitumbase.NewBaseFact(CreateServiceFactHint, token)
+	fact := CreateServiceFact{
 		BaseFact: bf,
 		sender:   sender,
 		target:   target,
@@ -36,7 +36,7 @@ func NewServiceRegisterFact(token []byte, sender, target mitumbase.Address, serv
 	return fact
 }
 
-func (fact ServiceRegisterFact) IsValid(b []byte) error {
+func (fact CreateServiceFact) IsValid(b []byte) error {
 	if err := fact.BaseHinter.IsValid(nil); err != nil {
 		return err
 	}
@@ -57,15 +57,15 @@ func (fact ServiceRegisterFact) IsValid(b []byte) error {
 	return nil
 }
 
-func (fact ServiceRegisterFact) Hash() util.Hash {
+func (fact CreateServiceFact) Hash() util.Hash {
 	return fact.BaseFact.Hash()
 }
 
-func (fact ServiceRegisterFact) GenerateHash() util.Hash {
+func (fact CreateServiceFact) GenerateHash() util.Hash {
 	return valuehash.NewSHA256(fact.Bytes())
 }
 
-func (fact ServiceRegisterFact) Bytes() []byte {
+func (fact CreateServiceFact) Bytes() []byte {
 	return util.ConcatBytesSlice(
 		fact.Token(),
 		fact.sender.Bytes(),
@@ -75,39 +75,39 @@ func (fact ServiceRegisterFact) Bytes() []byte {
 	)
 }
 
-func (fact ServiceRegisterFact) Token() mitumbase.Token {
+func (fact CreateServiceFact) Token() mitumbase.Token {
 	return fact.BaseFact.Token()
 }
 
-func (fact ServiceRegisterFact) Sender() mitumbase.Address {
+func (fact CreateServiceFact) Sender() mitumbase.Address {
 	return fact.sender
 }
 
-func (fact ServiceRegisterFact) Target() mitumbase.Address {
+func (fact CreateServiceFact) Target() mitumbase.Address {
 	return fact.target
 }
 
-func (fact ServiceRegisterFact) Service() types.ContractID {
+func (fact CreateServiceFact) Service() types.ContractID {
 	return fact.service
 }
 
-func (fact ServiceRegisterFact) Addresses() ([]mitumbase.Address, error) {
+func (fact CreateServiceFact) Addresses() ([]mitumbase.Address, error) {
 	return []mitumbase.Address{fact.sender, fact.target}, nil
 }
 
-func (fact ServiceRegisterFact) Currency() types.CurrencyID {
+func (fact CreateServiceFact) Currency() types.CurrencyID {
 	return fact.currency
 }
 
-type ServiceRegister struct {
+type CreateService struct {
 	common.BaseOperation
 }
 
-func NewServiceRegister(fact ServiceRegisterFact) (ServiceRegister, error) {
-	return ServiceRegister{BaseOperation: common.NewBaseOperation(ServiceRegisterHint, fact)}, nil
+func NewCreateService(fact CreateServiceFact) (CreateService, error) {
+	return CreateService{BaseOperation: common.NewBaseOperation(CreateServiceHint, fact)}, nil
 }
 
-func (op *ServiceRegister) HashSign(priv mitumbase.Privatekey, networkID mitumbase.NetworkID) error {
+func (op *CreateService) HashSign(priv mitumbase.Privatekey, networkID mitumbase.NetworkID) error {
 	err := op.Sign(priv, networkID)
 	if err != nil {
 		return err

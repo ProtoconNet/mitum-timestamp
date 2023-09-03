@@ -43,8 +43,8 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 	}
 
 	if err := opr.SetProcessor(
-		timestamp.ServiceRegisterHint,
-		timestamp.NewServiceRegisterProcessor(),
+		timestamp.CreateServiceHint,
+		timestamp.NewCreateServiceProcessor(),
 	); err != nil {
 		return pctx, err
 	} else if err := opr.SetProcessor(
@@ -63,7 +63,7 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 		)
 	})
 
-	_ = set.Add(timestamp.ServiceRegisterHint, func(height base.Height) (base.OperationProcessor, error) {
+	_ = set.Add(timestamp.CreateServiceHint, func(height base.Height) (base.OperationProcessor, error) {
 		return opr.New(
 			height,
 			db.State,
