@@ -7,14 +7,14 @@ import (
 	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
-func (fact *ServiceRegisterFact) unmarshal(
+func (fact *CreateServiceFact) unmarshal(
 	enc encoder.Encoder,
 	sa,
 	ta,
 	svc,
 	cid string,
 ) error {
-	e := util.StringError("failed to unmarshal ServiceRegisterFact")
+	e := util.StringError("failed to unmarshal CreateServiceFact")
 
 	fact.currency = types.CurrencyID(cid)
 

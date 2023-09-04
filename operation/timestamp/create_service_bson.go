@@ -10,7 +10,7 @@ import (
 	"github.com/ProtoconNet/mitum2/util/valuehash"
 )
 
-func (fact ServiceRegisterFact) MarshalBSON() ([]byte, error) {
+func (fact CreateServiceFact) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
 			"_hint":    fact.Hint().String(),
@@ -24,7 +24,7 @@ func (fact ServiceRegisterFact) MarshalBSON() ([]byte, error) {
 	)
 }
 
-type ServiceRegisterFactBSONUnmarshaler struct {
+type CreateServiceFactBSONUnmarshaler struct {
 	Hint     string `bson:"_hint"`
 	Sender   string `bson:"sender"`
 	Target   string `bson:"target"`
@@ -32,8 +32,8 @@ type ServiceRegisterFactBSONUnmarshaler struct {
 	Currency string `bson:"currency"`
 }
 
-func (fact *ServiceRegisterFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
-	e := util.StringError("failed to decode bson of ServiceRegisterFact")
+func (fact *CreateServiceFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
+	e := util.StringError("failed to decode bson of CreateServiceFact")
 
 	var u common.BaseFactBSONUnmarshaler
 
@@ -45,7 +45,7 @@ func (fact *ServiceRegisterFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) erro
 	fact.BaseFact.SetHash(valuehash.NewBytesFromString(u.Hash))
 	fact.BaseFact.SetToken(u.Token)
 
-	var uf ServiceRegisterFactBSONUnmarshaler
+	var uf CreateServiceFactBSONUnmarshaler
 	if err := bson.Unmarshal(b, &uf); err != nil {
 		return e.Wrap(err)
 	}
@@ -59,7 +59,7 @@ func (fact *ServiceRegisterFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) erro
 	return fact.unmarshal(enc, uf.Sender, uf.Target, uf.Service, uf.Currency)
 }
 
-func (op ServiceRegister) MarshalBSON() ([]byte, error) {
+func (op CreateService) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
 			"_hint": op.Hint().String(),
@@ -70,8 +70,8 @@ func (op ServiceRegister) MarshalBSON() ([]byte, error) {
 	)
 }
 
-func (op *ServiceRegister) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
-	e := util.StringError("failed to decode bson of CollectionRegister")
+func (op *CreateService) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
+	e := util.StringError("failed to decode bson of CreateService")
 
 	var ubo common.BaseOperation
 	if err := ubo.DecodeBSON(b, enc); err != nil {

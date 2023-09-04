@@ -8,7 +8,7 @@ import (
 	jsonenc "github.com/ProtoconNet/mitum2/util/encoder/json"
 )
 
-type ServiceRegisterFactJSONMarshaler struct {
+type CreateServiceFactJSONMarshaler struct {
 	mitumbase.BaseFactJSONMarshaler
 	Sender   mitumbase.Address `json:"sender"`
 	Target   mitumbase.Address `json:"target"`
@@ -16,8 +16,8 @@ type ServiceRegisterFactJSONMarshaler struct {
 	Currency types.CurrencyID  `json:"currency"`
 }
 
-func (fact ServiceRegisterFact) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(ServiceRegisterFactJSONMarshaler{
+func (fact CreateServiceFact) MarshalJSON() ([]byte, error) {
+	return util.MarshalJSON(CreateServiceFactJSONMarshaler{
 		BaseFactJSONMarshaler: fact.BaseFact.JSONMarshaler(),
 		Sender:                fact.sender,
 		Target:                fact.target,
@@ -26,7 +26,7 @@ func (fact ServiceRegisterFact) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type ServiceRegisterFactJSONUnmarshaler struct {
+type CreateServiceFactJSONUnmarshaler struct {
 	mitumbase.BaseFactJSONUnmarshaler
 	Sender   string `json:"sender"`
 	Target   string `json:"target"`
@@ -34,10 +34,10 @@ type ServiceRegisterFactJSONUnmarshaler struct {
 	Currency string `json:"currency"`
 }
 
-func (fact *ServiceRegisterFact) DecodeJSON(b []byte, enc *jsonenc.Encoder) error {
-	e := util.StringError("failed to decode json of ServiceRegisterFact")
+func (fact *CreateServiceFact) DecodeJSON(b []byte, enc *jsonenc.Encoder) error {
+	e := util.StringError("failed to decode json of CreateServiceFact")
 
-	var u ServiceRegisterFactJSONUnmarshaler
+	var u CreateServiceFactJSONUnmarshaler
 	if err := enc.Unmarshal(b, &u); err != nil {
 		return e.Wrap(err)
 	}
@@ -47,18 +47,18 @@ func (fact *ServiceRegisterFact) DecodeJSON(b []byte, enc *jsonenc.Encoder) erro
 	return fact.unmarshal(enc, u.Sender, u.Target, u.Service, u.Currency)
 }
 
-type serviceRegisterMarshaler struct {
+type createServiceMarshaler struct {
 	common.BaseOperationJSONMarshaler
 }
 
-func (op ServiceRegister) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(serviceRegisterMarshaler{
+func (op CreateService) MarshalJSON() ([]byte, error) {
+	return util.MarshalJSON(createServiceMarshaler{
 		BaseOperationJSONMarshaler: op.BaseOperation.JSONMarshaler(),
 	})
 }
 
-func (op *ServiceRegister) DecodeJSON(b []byte, enc *jsonenc.Encoder) error {
-	e := util.StringError("failed to decode json of ServiceRegister")
+func (op *CreateService) DecodeJSON(b []byte, enc *jsonenc.Encoder) error {
+	e := util.StringError("failed to decode json of CreateService")
 
 	var ubo common.BaseOperation
 	if err := ubo.DecodeJSON(b, enc); err != nil {

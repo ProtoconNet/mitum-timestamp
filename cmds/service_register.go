@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"context"
+
 	currencycmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
 	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	timestampservice "github.com/ProtoconNet/mitum-timestamp/operation/timestamp"
@@ -10,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type ServiceRegisterCommand struct {
+type CreateServiceCommand struct {
 	BaseCommand
 	currencycmds.OperationFlags
 	Sender   currencycmds.AddressFlag    `arg:"" name:"sender" help:"sender address" required:"true"`
@@ -22,7 +23,7 @@ type ServiceRegisterCommand struct {
 	service  currencytypes.ContractID
 }
 
-func (cmd *ServiceRegisterCommand) Run(pctx context.Context) error {
+func (cmd *CreateServiceCommand) Run(pctx context.Context) error {
 	if _, err := cmd.prepare(pctx); err != nil {
 		return err
 	}
@@ -44,7 +45,7 @@ func (cmd *ServiceRegisterCommand) Run(pctx context.Context) error {
 	return nil
 }
 
-func (cmd *ServiceRegisterCommand) parseFlags() error {
+func (cmd *CreateServiceCommand) parseFlags() error {
 	if err := cmd.OperationFlags.IsValid(nil); err != nil {
 		return err
 	}
@@ -71,12 +72,12 @@ func (cmd *ServiceRegisterCommand) parseFlags() error {
 	return nil
 }
 
-func (cmd *ServiceRegisterCommand) createOperation() (base.Operation, error) {
-	e := util.StringError("failed to create service-register operation")
+func (cmd *CreateServiceCommand) createOperation() (base.Operation, error) {
+	e := util.StringError("failed to create creates-service operation")
 
-	fact := timestampservice.NewServiceRegisterFact([]byte(cmd.Token), cmd.sender, cmd.target, cmd.service, cmd.Currency.CID)
+	fact := timestampservice.NewCreateServiceFact([]byte(cmd.Token), cmd.sender, cmd.target, cmd.service, cmd.Currency.CID)
 
-	op, err := timestampservice.NewServiceRegister(fact)
+	op, err := timestampservice.NewCreateService(fact)
 	if err != nil {
 		return nil, e.Wrap(err)
 	}

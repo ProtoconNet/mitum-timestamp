@@ -20,7 +20,7 @@ var AddedHinters = []encoder.DecodeDetail{
 	{Hint: types.TimeStampItemHint, Instance: types.TimeStampItem{}},
 
 	{Hint: timestamp.AppendHint, Instance: timestamp.Append{}},
-	{Hint: timestamp.ServiceRegisterHint, Instance: timestamp.ServiceRegister{}},
+	{Hint: timestamp.CreateServiceHint, Instance: timestamp.CreateService{}},
 
 	{Hint: state.TimeStampItemStateValueHint, Instance: state.TimeStampItemStateValue{}},
 	{Hint: state.ServiceDesignStateValueHint, Instance: state.ServiceDesignStateValue{}},
@@ -29,7 +29,7 @@ var AddedHinters = []encoder.DecodeDetail{
 
 var AddedSupportedHinters = []encoder.DecodeDetail{
 	{Hint: timestamp.AppendFactHint, Instance: timestamp.AppendFact{}},
-	{Hint: timestamp.ServiceRegisterFactHint, Instance: timestamp.ServiceRegisterFact{}},
+	{Hint: timestamp.CreateServiceFactHint, Instance: timestamp.CreateServiceFact{}},
 }
 
 func init() {
