@@ -105,8 +105,8 @@ func (opp *CreateServiceProcessor) PreProcess(
 		return ctx, mitumbase.NewBaseOperationProcessReasonError("sender is not owner of contract account, %q, %q", fact.Sender(), ca.Owner()), nil
 	}
 
-	if !ca.IsActive() {
-		return ctx, mitumbase.NewBaseOperationProcessReasonError("deactivated contract account, %q", fact.Target()), nil
+	if ca.IsActive() {
+		return nil, mitumbase.NewBaseOperationProcessReasonError("a design is already registered, %q", fact.Target().String()), nil
 	}
 
 	if err := state.CheckNotExistsState(statetimestamp.StateKeyServiceDesign(fact.Target(), fact.Service()), getStateFunc); err != nil {
@@ -127,7 +127,7 @@ func (opp *CreateServiceProcessor) Process(
 		return nil, nil, e.Errorf("expected CreateServiceFact, not %T", op.Fact())
 	}
 
-	sts := make([]mitumbase.StateMergeValue, 2)
+	sts := make([]mitumbase.StateMergeValue, 3)
 	pids := []string{}
 
 	design := types.NewDesign(fact.Service(), pids...)
@@ -140,6 +140,22 @@ func (opp *CreateServiceProcessor) Process(
 		statetimestamp.NewServiceDesignStateValue(design),
 	)
 
+	st, err := state.ExistsState(stateextension.StateKeyContractAccount(fact.Target()), "key of contract account", getStateFunc)
+	if err != nil {
+		return nil, mitumbase.NewBaseOperationProcessReasonError("target contract account not found, %q; %w", fact.Target(), err), nil
+	}
+
+	ca, err := stateextension.StateContractAccountValue(st)
+	if err != nil {
+		return nil, mitumbase.NewBaseOperationProcessReasonError("failed to get state value of contract account, %q; %w", fact.Target(), err), nil
+	}
+	ca.SetIsActive(true)
+
+	sts[1] = state.NewStateMergeValue(
+		stateextension.StateKeyContractAccount(fact.Target()),
+		stateextension.NewContractAccountStateValue(ca),
+	)
+
 	currencyPolicy, err := state.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
 	if err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError("currency not found, %q; %w", fact.Currency(), err), nil
@@ -150,7 +166,7 @@ func (opp *CreateServiceProcessor) Process(
 		return nil, mitumbase.NewBaseOperationProcessReasonError("failed to check fee of currency, %q; %w", fact.Currency(), err), nil
 	}
 
-	st, err := state.ExistsState(statecurrency.StateKeyBalance(fact.Sender(), fact.Currency()), "key of sender balance", getStateFunc)
+	st, err = state.ExistsState(statecurrency.StateKeyBalance(fact.Sender(), fact.Currency()), "key of sender balance", getStateFunc)
 	if err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError("sender balance not found, %q; %w", fact.Sender(), err), nil
 	}
@@ -167,7 +183,7 @@ func (opp *CreateServiceProcessor) Process(
 	if !ok {
 		return nil, mitumbase.NewBaseOperationProcessReasonError("expected BalanceStateValue, not %T", sb.Value()), nil
 	}
-	sts[1] = state.NewStateMergeValue(
+	sts[2] = state.NewStateMergeValue(
 		sb.Key(),
 		statecurrency.NewBalanceStateValue(v.Amount.WithBig(v.Amount.Big().Sub(fee))),
 	)
