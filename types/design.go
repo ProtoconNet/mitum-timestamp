@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"github.com/ProtoconNet/mitum-currency/v3/types"
 	"sort"
 
 	"github.com/ProtoconNet/mitum2/util"
@@ -14,14 +13,12 @@ var DesignHint = hint.MustNewHint("mitum-timestamp-design-v0.0.1")
 
 type Design struct {
 	hint.BaseHinter
-	service  types.ContractID
 	projects []string
 }
 
-func NewDesign(service types.ContractID, projects ...string) Design {
+func NewDesign(projects ...string) Design {
 	return Design{
 		BaseHinter: hint.NewBaseHinter(DesignHint),
-		service:    service,
 		projects:   projects,
 	}
 }
@@ -29,7 +26,6 @@ func NewDesign(service types.ContractID, projects ...string) Design {
 func (de Design) IsValid([]byte) error {
 	if err := util.CheckIsValiders(nil, false,
 		de.BaseHinter,
-		de.service,
 	); err != nil {
 		return err
 	}
@@ -38,16 +34,14 @@ func (de Design) IsValid([]byte) error {
 }
 
 func (de Design) Bytes() []byte {
-	length := 1
-	bytesArray := make([][]byte, length+len(de.projects))
-	bytesArray[0] = de.service.Bytes()
+	bytesArray := make([][]byte, len(de.projects))
 
 	sort.Slice(de.projects, func(i, j int) bool {
 		return bytes.Compare([]byte(de.projects[j]), []byte(de.projects[i])) < 0
 	})
 
 	for i := range de.projects {
-		bytesArray[i+length] = []byte(de.projects[i])
+		bytesArray[i] = []byte(de.projects[i])
 	}
 
 	return util.ConcatBytesSlice(bytesArray...)
@@ -59,10 +53,6 @@ func (de Design) Hash() util.Hash {
 
 func (de Design) GenerateHash() util.Hash {
 	return valuehash.NewSHA256(de.Bytes())
-}
-
-func (de Design) Service() types.ContractID {
-	return de.service
 }
 
 func (de Design) Projects() []string {
@@ -80,10 +70,6 @@ func (de *Design) AddProject(project string) {
 }
 
 func (de Design) Equal(cd Design) bool {
-	if de.service != cd.service {
-		return false
-	}
-
 	if len(de.projects) != len(cd.projects) {
 		return false
 	}

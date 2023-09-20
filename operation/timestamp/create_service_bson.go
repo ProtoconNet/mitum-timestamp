@@ -18,7 +18,6 @@ func (fact CreateServiceFact) MarshalBSON() ([]byte, error) {
 			"token":    fact.BaseFact.Token(),
 			"sender":   fact.sender,
 			"target":   fact.target,
-			"service":  fact.service,
 			"currency": fact.currency,
 		},
 	)
@@ -28,7 +27,6 @@ type CreateServiceFactBSONUnmarshaler struct {
 	Hint     string `bson:"_hint"`
 	Sender   string `bson:"sender"`
 	Target   string `bson:"target"`
-	Service  string `bson:"service"`
 	Currency string `bson:"currency"`
 }
 
@@ -56,7 +54,7 @@ func (fact *CreateServiceFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error 
 	}
 	fact.BaseHinter = hint.NewBaseHinter(ht)
 
-	return fact.unmarshal(enc, uf.Sender, uf.Target, uf.Service, uf.Currency)
+	return fact.unmarshal(enc, uf.Sender, uf.Target, uf.Currency)
 }
 
 func (op CreateService) MarshalBSON() ([]byte, error) {

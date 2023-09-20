@@ -9,13 +9,9 @@ import (
 
 func (fact *AppendFact) unmarshal(
 	enc encoder.Encoder,
-	sa string,
-	ta string,
-	svc,
-	pid string,
+	sa, ta, pid string,
 	rqts uint64,
-	data string,
-	cid string,
+	data, cid string,
 ) error {
 	e := util.StringError("failed to unmarshal AppendFact")
 
@@ -33,7 +29,6 @@ func (fact *AppendFact) unmarshal(
 		fact.target = target
 	}
 
-	fact.service = types.ContractID(svc)
 	fact.projectID = pid
 	fact.requestTimeStamp = rqts
 	fact.data = data

@@ -19,8 +19,8 @@ import (
 )
 
 var (
-	HandlerPathTimeStampService = `/timestamp/{contract:.*}/service/{service:.+}`
-	HandlerPathTimeStampItem    = `/timestamp/{contract:.*}/service/{service:.+}/project/{project:.+}/id/{tid:[0-9]+}`
+	HandlerPathTimeStampService = `/timestamp/{contract:.*}/service`
+	HandlerPathTimeStampItem    = `/timestamp/{contract:.*}/project/{project:.+}/id/{tid:[0-9]+}`
 )
 
 func init() {

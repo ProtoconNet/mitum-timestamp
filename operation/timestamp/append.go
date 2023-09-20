@@ -20,20 +20,18 @@ type AppendFact struct {
 	mitumbase.BaseFact
 	sender           mitumbase.Address
 	target           mitumbase.Address
-	service          currencytypes.ContractID
 	projectID        string
 	requestTimeStamp uint64
 	data             string
 	currency         currencytypes.CurrencyID
 }
 
-func NewAppendFact(token []byte, sender, target mitumbase.Address, service currencytypes.ContractID, projectID string, requestTimeStamp uint64, data string, currency currencytypes.CurrencyID) AppendFact {
+func NewAppendFact(token []byte, sender, target mitumbase.Address, projectID string, requestTimeStamp uint64, data string, currency currencytypes.CurrencyID) AppendFact {
 	bf := mitumbase.NewBaseFact(AppendFactHint, token)
 	fact := AppendFact{
 		BaseFact:         bf,
 		sender:           sender,
 		target:           target,
-		service:          service,
 		projectID:        projectID,
 		requestTimeStamp: requestTimeStamp,
 		data:             data,
@@ -57,7 +55,6 @@ func (fact AppendFact) IsValid(b []byte) error {
 		fact.BaseHinter,
 		fact.sender,
 		fact.target,
-		fact.service,
 		fact.currency,
 	); err != nil {
 		return err
@@ -83,7 +80,6 @@ func (fact AppendFact) Bytes() []byte {
 		fact.Token(),
 		fact.sender.Bytes(),
 		fact.target.Bytes(),
-		fact.service.Bytes(),
 		[]byte(fact.projectID),
 		util.Uint64ToBytes(fact.requestTimeStamp),
 		[]byte(fact.data),
@@ -101,6 +97,18 @@ func (fact AppendFact) Sender() mitumbase.Address {
 
 func (fact AppendFact) Target() mitumbase.Address {
 	return fact.target
+}
+
+func (fact AppendFact) ProjectId() string {
+	return fact.projectID
+}
+
+func (fact AppendFact) RequestTimeStamp() uint64 {
+	return fact.requestTimeStamp
+}
+
+func (fact AppendFact) Data() string {
+	return fact.data
 }
 
 func (fact AppendFact) Currency() currencytypes.CurrencyID {

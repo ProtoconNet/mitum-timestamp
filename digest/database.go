@@ -20,9 +20,8 @@ var (
 	defaultColNameBlock     = "digest_bm"
 )
 
-func Timestamp(st *currencydigest.Database, contract, service string) (types.Design, mitumbase.State, error) {
+func Timestamp(st *currencydigest.Database, contract string) (types.Design, mitumbase.State, error) {
 	filter := util.NewBSONFilter("contract", contract)
-	filter = filter.Add("timestampservice", service)
 	filter = filter.Add("isItem", false)
 	q := filter.D()
 
@@ -57,9 +56,8 @@ func Timestamp(st *currencydigest.Database, contract, service string) (types.Des
 	}
 }
 
-func TimestampItem(st *currencydigest.Database, contract, service, project string, idx uint64) (types.TimeStampItem, mitumbase.State, error) {
+func TimestampItem(st *currencydigest.Database, contract, project string, idx uint64) (types.TimeStampItem, mitumbase.State, error) {
 	filter := util.NewBSONFilter("contract", contract)
-	filter = filter.Add("timestampservice", service)
 	filter = filter.Add("project", project)
 	filter = filter.Add("timestampidx", idx)
 	filter = filter.Add("isItem", true)

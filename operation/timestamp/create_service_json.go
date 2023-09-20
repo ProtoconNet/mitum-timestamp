@@ -12,7 +12,6 @@ type CreateServiceFactJSONMarshaler struct {
 	mitumbase.BaseFactJSONMarshaler
 	Sender   mitumbase.Address `json:"sender"`
 	Target   mitumbase.Address `json:"target"`
-	Service  types.ContractID  `json:"service"`
 	Currency types.CurrencyID  `json:"currency"`
 }
 
@@ -21,7 +20,6 @@ func (fact CreateServiceFact) MarshalJSON() ([]byte, error) {
 		BaseFactJSONMarshaler: fact.BaseFact.JSONMarshaler(),
 		Sender:                fact.sender,
 		Target:                fact.target,
-		Service:               fact.service,
 		Currency:              fact.currency,
 	})
 }
@@ -30,7 +28,6 @@ type CreateServiceFactJSONUnmarshaler struct {
 	mitumbase.BaseFactJSONUnmarshaler
 	Sender   string `json:"sender"`
 	Target   string `json:"target"`
-	Service  string `json:"service"`
 	Currency string `json:"currency"`
 }
 
@@ -44,7 +41,7 @@ func (fact *CreateServiceFact) DecodeJSON(b []byte, enc *jsonenc.Encoder) error 
 
 	fact.BaseFact.SetJSONUnmarshaler(u.BaseFactJSONUnmarshaler)
 
-	return fact.unmarshal(enc, u.Sender, u.Target, u.Service, u.Currency)
+	return fact.unmarshal(enc, u.Sender, u.Target, u.Currency)
 }
 
 type createServiceMarshaler struct {

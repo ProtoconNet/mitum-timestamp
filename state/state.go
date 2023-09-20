@@ -3,8 +3,8 @@ package state
 import (
 	"fmt"
 	statecurrency "github.com/ProtoconNet/mitum-currency/v3/state/currency"
-	"github.com/ProtoconNet/mitum-currency/v3/types"
-	types2 "github.com/ProtoconNet/mitum-timestamp/types"
+	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-timestamp/types"
 	"strconv"
 	"strings"
 
@@ -20,16 +20,16 @@ var (
 	StateKeyServiceDesignSuffix = ":service"
 )
 
-func StateKeyTimeStampService(addr mitumbase.Address, sid types.ContractID) string {
-	return fmt.Sprintf("%s%s:%s", StateKeyTimeStampPrefix, addr.String(), sid)
+func StateKeyTimeStampService(addr mitumbase.Address) string {
+	return fmt.Sprintf("%s%s", StateKeyTimeStampPrefix, addr.String())
 }
 
 type ServiceDesignStateValue struct {
 	hint.BaseHinter
-	Design types2.Design
+	Design types.Design
 }
 
-func NewServiceDesignStateValue(design types2.Design) ServiceDesignStateValue {
+func NewServiceDesignStateValue(design types.Design) ServiceDesignStateValue {
 	return ServiceDesignStateValue{
 		BaseHinter: hint.NewBaseHinter(ServiceDesignStateValueHint),
 		Design:     design,
@@ -58,15 +58,15 @@ func (sd ServiceDesignStateValue) HashBytes() []byte {
 	return sd.Design.Bytes()
 }
 
-func StateServiceDesignValue(st mitumbase.State) (types2.Design, error) {
+func StateServiceDesignValue(st mitumbase.State) (types.Design, error) {
 	v := st.Value()
 	if v == nil {
-		return types2.Design{}, util.ErrNotFound.Errorf("service design not found in State")
+		return types.Design{}, util.ErrNotFound.Errorf("service design not found in State")
 	}
 
 	d, ok := v.(ServiceDesignStateValue)
 	if !ok {
-		return types2.Design{}, errors.Errorf("invalid service design value found, %T", v)
+		return types.Design{}, errors.Errorf("invalid service design value found, %T", v)
 	}
 
 	return d.Design, nil
@@ -76,8 +76,8 @@ func IsStateServiceDesignKey(key string) bool {
 	return strings.HasSuffix(key, StateKeyServiceDesignSuffix)
 }
 
-func StateKeyServiceDesign(addr mitumbase.Address, sid types.ContractID) string {
-	return fmt.Sprintf("%s%s", StateKeyTimeStampService(addr, sid), StateKeyServiceDesignSuffix)
+func StateKeyServiceDesign(addr mitumbase.Address) string {
+	return fmt.Sprintf("%s%s", StateKeyTimeStampService(addr), StateKeyServiceDesignSuffix)
 }
 
 type StateValueMerger struct {
@@ -134,8 +134,8 @@ func (ti TimeStampLastIndexStateValue) IsValid([]byte) error {
 		return e.Wrap(err)
 	}
 
-	if len(ti.ProjectID) < 1 || len(ti.ProjectID) > types2.MaxProjectIDLen {
-		return errors.Errorf("invalid projectID length %v < 1 or > %v", len(ti.ProjectID), types2.MaxProjectIDLen)
+	if len(ti.ProjectID) < 1 || len(ti.ProjectID) > types.MaxProjectIDLen {
+		return errors.Errorf("invalid projectID length %v < 1 or > %v", len(ti.ProjectID), types.MaxProjectIDLen)
 	}
 
 	return nil
@@ -163,8 +163,8 @@ func IsStateTimeStampLastIndexKey(key string) bool {
 	return strings.HasSuffix(key, StateKeyProjectLastIndexSuffix)
 }
 
-func StateKeyTimeStampLastIndex(addr mitumbase.Address, sid types.ContractID, pid string) string {
-	return fmt.Sprintf("%s:%s%s", StateKeyTimeStampService(addr, sid), pid, StateKeyProjectLastIndexSuffix)
+func StateKeyTimeStampLastIndex(addr mitumbase.Address, pid string) string {
+	return fmt.Sprintf("%s:%s%s", StateKeyTimeStampService(addr), pid, StateKeyProjectLastIndexSuffix)
 }
 
 var (
@@ -174,10 +174,10 @@ var (
 
 type TimeStampItemStateValue struct {
 	hint.BaseHinter
-	TimeStampItem types2.TimeStampItem
+	TimeStampItem types.TimeStampItem
 }
 
-func NewTimeStampItemStateValue(item types2.TimeStampItem) TimeStampItemStateValue {
+func NewTimeStampItemStateValue(item types.TimeStampItem) TimeStampItemStateValue {
 	return TimeStampItemStateValue{
 		BaseHinter:    hint.NewBaseHinter(TimeStampItemStateValueHint),
 		TimeStampItem: item,
@@ -206,15 +206,15 @@ func (ts TimeStampItemStateValue) HashBytes() []byte {
 	return ts.TimeStampItem.Bytes()
 }
 
-func StateTimeStampItemValue(st mitumbase.State) (types2.TimeStampItem, error) {
+func StateTimeStampItemValue(st mitumbase.State) (types.TimeStampItem, error) {
 	v := st.Value()
 	if v == nil {
-		return types2.TimeStampItem{}, util.ErrNotFound.Errorf("TimeStampItem not found in State")
+		return types.TimeStampItem{}, util.ErrNotFound.Errorf("TimeStampItem not found in State")
 	}
 
 	ts, ok := v.(TimeStampItemStateValue)
 	if !ok {
-		return types2.TimeStampItem{}, errors.Errorf("invalid TimeStampItem value found, %T", v)
+		return types.TimeStampItem{}, errors.Errorf("invalid TimeStampItem value found, %T", v)
 	}
 
 	return ts.TimeStampItem, nil
@@ -224,19 +224,19 @@ func IsStateTimeStampItemKey(key string) bool {
 	return strings.HasSuffix(key, StateKeyTimeStampItemSuffix)
 }
 
-func StateKeyTimeStampItem(addr mitumbase.Address, sid types.ContractID, pid string, index uint64) string {
-	return fmt.Sprintf("%s:%s:s%s%s", StateKeyTimeStampService(addr, sid), pid, strconv.FormatUint(index, 10), StateKeyTimeStampItemSuffix)
+func StateKeyTimeStampItem(addr mitumbase.Address, pid string, index uint64) string {
+	return fmt.Sprintf("%s:%s:s%s%s", StateKeyTimeStampService(addr), pid, strconv.FormatUint(index, 10), StateKeyTimeStampItemSuffix)
 }
 
-func ParseStateKey(key string) (string, string, error) {
+func ParseStateKey(key string) ([]string, error) {
 	parsedKey := strings.Split(key, ":")
 	if parsedKey[0] != StateKeyTimeStampPrefix[:len(StateKeyTimeStampPrefix)-1] {
-		return "", "", errors.Errorf("State Key not include TimeStampPrefix, %s", parsedKey)
+		return nil, errors.Errorf("State Key not include TimeStampPrefix, %s", parsedKey)
 	}
 	if len(parsedKey) < 3 {
-		return "", "", errors.Errorf("parsing State Key string failed, %s", parsedKey)
+		return nil, errors.Errorf("parsing State Key string failed, %s", parsedKey)
 	} else {
-		return parsedKey[1], parsedKey[2], nil
+		return parsedKey, nil
 	}
 }
 
@@ -300,18 +300,18 @@ func notExistsState(
 	return st, nil
 }
 
-func existsCurrencyPolicy(cid types.CurrencyID, getStateFunc mitumbase.GetStateFunc) (types.CurrencyPolicy, error) {
-	var policy types.CurrencyPolicy
+func existsCurrencyPolicy(cid currencytypes.CurrencyID, getStateFunc mitumbase.GetStateFunc) (currencytypes.CurrencyPolicy, error) {
+	var policy currencytypes.CurrencyPolicy
 
 	switch st, found, err := getStateFunc(statecurrency.StateKeyCurrencyDesign(cid)); {
 	case err != nil:
-		return types.CurrencyPolicy{}, err
+		return currencytypes.CurrencyPolicy{}, err
 	case !found:
-		return types.CurrencyPolicy{}, errors.Errorf("currency not found, %v", cid)
+		return currencytypes.CurrencyPolicy{}, errors.Errorf("currency not found, %v", cid)
 	default:
 		design, ok := st.Value().(statecurrency.CurrencyDesignStateValue) //nolint:forcetypeassert //...
 		if !ok {
-			return types.CurrencyPolicy{}, errors.Errorf("expected CurrencyDesignStateValue, not %T", st.Value())
+			return currencytypes.CurrencyPolicy{}, errors.Errorf("expected CurrencyDesignStateValue, not %T", st.Value())
 		}
 		policy = design.CurrencyDesign.Policy()
 	}

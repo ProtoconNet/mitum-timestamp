@@ -9,10 +9,7 @@ import (
 
 func (fact *CreateServiceFact) unmarshal(
 	enc encoder.Encoder,
-	sa,
-	ta,
-	svc,
-	cid string,
+	sa, ta, cid string,
 ) error {
 	e := util.StringError("failed to unmarshal CreateServiceFact")
 
@@ -28,7 +25,6 @@ func (fact *CreateServiceFact) unmarshal(
 		return e.Wrap(err)
 	}
 	fact.target = target
-	fact.service = types.ContractID(svc)
 
 	return nil
 }

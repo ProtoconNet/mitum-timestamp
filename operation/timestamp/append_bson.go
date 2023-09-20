@@ -18,7 +18,6 @@ func (fact AppendFact) MarshalBSON() ([]byte, error) {
 			"token":             fact.BaseFact.Token(),
 			"sender":            fact.sender,
 			"target":            fact.target,
-			"service":           fact.service,
 			"projectid":         fact.projectID,
 			"request_timestamp": fact.requestTimeStamp,
 			"data":              fact.data,
@@ -31,7 +30,6 @@ type AppendFactBSONUnmarshaler struct {
 	Hint             string `bson:"_hint"`
 	Sender           string `bson:"sender"`
 	Target           string `bson:"target"`
-	Service          string `bson:"service"`
 	ProjectID        string `bson:"projectid"`
 	RequestTimeStamp uint64 `bson:"request_timestamp"`
 	Data             string `bson:"data"`
@@ -62,7 +60,7 @@ func (fact *AppendFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 	}
 	fact.BaseHinter = hint.NewBaseHinter(ht)
 
-	return fact.unmarshal(enc, uf.Sender, uf.Target, uf.Service, uf.ProjectID, uf.RequestTimeStamp, uf.Data, uf.Currency)
+	return fact.unmarshal(enc, uf.Sender, uf.Target, uf.ProjectID, uf.RequestTimeStamp, uf.Data, uf.Currency)
 }
 
 func (op Append) MarshalBSON() ([]byte, error) {

@@ -7,7 +7,6 @@ import (
 	"os"
 
 	currencycmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
-
 	"github.com/ProtoconNet/mitum2/launch"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/encoder"
@@ -22,12 +21,6 @@ type BaseCommand struct {
 	Encoders *encoder.Encoders
 	Log      *zerolog.Logger
 	Out      io.Writer `kong:"-"`
-}
-
-func NewBaseCommand() *BaseCommand {
-	return &BaseCommand{
-		Out: os.Stdout,
-	}
 }
 
 func (cmd *BaseCommand) prepare(pctx context.Context) (context.Context, error) {

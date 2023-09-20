@@ -12,14 +12,12 @@ func (de Design) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
 			"_hint":    de.Hint().String(),
-			"service":  de.service,
 			"projects": de.projects,
 		})
 }
 
 type DesignBSONUnmarshaler struct {
 	Hint     string   `bson:"_hint"`
-	Service  string   `bson:"service"`
 	Projects []string `bson:"projects"`
 }
 
@@ -36,5 +34,5 @@ func (de *Design) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 		return e.Wrap(err)
 	}
 
-	return de.unmarshal(enc, ht, u.Service, u.Projects)
+	return de.unmarshal(enc, ht, u.Projects)
 }
