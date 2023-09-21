@@ -122,11 +122,3 @@ type Append struct {
 func NewAppend(fact AppendFact) (Append, error) {
 	return Append{BaseOperation: common.NewBaseOperation(AppendHint, fact)}, nil
 }
-
-func (op *Append) HashSign(priv mitumbase.Privatekey, networkID mitumbase.NetworkID) error {
-	err := op.Sign(priv, networkID)
-	if err != nil {
-		return err
-	}
-	return nil
-}

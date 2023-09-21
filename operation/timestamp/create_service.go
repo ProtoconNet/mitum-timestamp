@@ -98,11 +98,3 @@ type CreateService struct {
 func NewCreateService(fact CreateServiceFact) (CreateService, error) {
 	return CreateService{BaseOperation: common.NewBaseOperation(CreateServiceHint, fact)}, nil
 }
-
-func (op *CreateService) HashSign(priv mitumbase.Privatekey, networkID mitumbase.NetworkID) error {
-	err := op.Sign(priv, networkID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
