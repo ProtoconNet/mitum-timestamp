@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	CreateServiceFactHint = hint.MustNewHint("mitum-timestamp-creates-service-operation-fact-v0.0.1")
-	CreateServiceHint     = hint.MustNewHint("mitum-timestamp-creates-service-operation-v0.0.1")
+	CreateServiceFactHint = hint.MustNewHint("mitum-timestamp-create-service-operation-fact-v0.0.1")
+	CreateServiceHint     = hint.MustNewHint("mitum-timestamp-create-service-operation-v0.0.1")
 )
 
 type CreateServiceFact struct {
