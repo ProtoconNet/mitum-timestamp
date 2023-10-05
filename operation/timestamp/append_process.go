@@ -118,7 +118,7 @@ func (opp *AppendProcessor) PreProcess(
 
 	_, found, err := opp.getLastBlockFunc()
 	if err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("get LastBlock failed, %w", err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("get LastBlock failed; %w", err), nil
 	} else if !found {
 		return nil, mitumbase.NewBaseOperationProcessReasonError("LastBlock not found"), nil
 	}
@@ -175,7 +175,7 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 
 	blockmap, found, err := opp.getLastBlockFunc()
 	if err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("get LastBlock failed, %w", err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("get LastBlock failed; %w", err), nil
 	} else if !found {
 		return nil, mitumbase.NewBaseOperationProcessReasonError("LastBlock not found"), nil
 	}
@@ -188,7 +188,7 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 		fact.Data(),
 	)
 	if err := tsItem.IsValid(nil); err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("invalid timestamp, %w", err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("invalid timestamp; %w", err), nil
 	}
 
 	sts := make([]mitumbase.StateMergeValue, 2) // nolint:prealloc
