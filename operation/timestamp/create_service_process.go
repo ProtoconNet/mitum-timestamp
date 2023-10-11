@@ -125,7 +125,7 @@ func (opp *CreateServiceProcessor) PreProcess(
 
 	if ca.IsActive() {
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
-			"a design is already registered, %q",
+			"a contract account is already used, %q",
 			fact.Target().String(),
 		), nil
 	}
@@ -174,11 +174,11 @@ func (opp *CreateServiceProcessor) Process(
 	if err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError("failed to get state value of contract account, %q; %w", fact.Target(), err), nil
 	}
-	ca.SetIsActive(true)
+	nca := ca.SetIsActive(true)
 
 	sts[1] = state.NewStateMergeValue(
 		stateextension.StateKeyContractAccount(fact.Target()),
-		stateextension.NewContractAccountStateValue(ca),
+		stateextension.NewContractAccountStateValue(nca),
 	)
 
 	currencyPolicy, err := state.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
