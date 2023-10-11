@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	currencydigest "github.com/ProtoconNet/mitum-currency/v3/digest"
+	stateextension "github.com/ProtoconNet/mitum-currency/v3/state/extension"
 	"sync"
 	"time"
 
@@ -34,8 +35,8 @@ type BlockSession struct {
 	accountModels         []mongo.WriteModel
 	balanceModels         []mongo.WriteModel
 	currencyModels        []mongo.WriteModel
-	timestampModels       []mongo.WriteModel
 	contractAccountModels []mongo.WriteModel
+	timestampModels       []mongo.WriteModel
 	statesValue           *sync.Map
 	balanceAddressList    []string
 }
@@ -103,20 +104,34 @@ func (bs *BlockSession) Commit(ctx context.Context) error {
 		return err
 	}
 
-	if err := bs.writeModels(ctx, defaultColNameOperation, bs.operationModels); err != nil {
-		return err
+	if len(bs.operationModels) > 0 {
+		if err := bs.writeModels(ctx, defaultColNameOperation, bs.operationModels); err != nil {
+			return err
+		}
 	}
 
-	if err := bs.writeModels(ctx, defaultColNameCurrency, bs.currencyModels); err != nil {
-		return err
+	if len(bs.currencyModels) > 0 {
+		if err := bs.writeModels(ctx, defaultColNameCurrency, bs.currencyModels); err != nil {
+			return err
+		}
 	}
 
-	if err := bs.writeModels(ctx, defaultColNameAccount, bs.accountModels); err != nil {
-		return err
+	if len(bs.accountModels) > 0 {
+		if err := bs.writeModels(ctx, defaultColNameAccount, bs.accountModels); err != nil {
+			return err
+		}
 	}
 
-	if err := bs.writeModels(ctx, defaultColNameTimeStamp, bs.timestampModels); err != nil {
-		return err
+	if len(bs.contractAccountModels) > 0 {
+		if err := bs.writeModels(ctx, defaultColNameContractAccount, bs.contractAccountModels); err != nil {
+			return err
+		}
+	}
+
+	if len(bs.timestampModels) > 0 {
+		if err := bs.writeModels(ctx, defaultColNameTimeStamp, bs.timestampModels); err != nil {
+			return err
+		}
 	}
 
 	if len(bs.balanceModels) > 0 {
@@ -140,7 +155,11 @@ func (bs *BlockSession) prepareOperationsTree() error {
 
 	if err := bs.opstree.Traverse(func(_ uint64, no fixedtree.Node) (bool, error) {
 		nno := no.(mitumbase.OperationFixedtreeNode)
-		nodes[nno.Key()] = nno
+		if nno.InState() {
+			nodes[nno.Key()] = nno
+		} else {
+			nodes[nno.Key()[:len(nno.Key())-1]] = nno
+		}
 
 		return true, nil
 	}); err != nil {
@@ -237,6 +256,7 @@ func (bs *BlockSession) prepareAccounts() error {
 
 	var accountModels []mongo.WriteModel
 	var balanceModels []mongo.WriteModel
+	var contractAccountModels []mongo.WriteModel
 	for i := range bs.sts {
 		st := bs.sts[i]
 
@@ -254,12 +274,19 @@ func (bs *BlockSession) prepareAccounts() error {
 			}
 			balanceModels = append(balanceModels, j...)
 			bs.balanceAddressList = append(bs.balanceAddressList, address)
+		case stateextension.IsStateContractAccountKey(st.Key()):
+			j, err := bs.handleContractAccountState(st)
+			if err != nil {
+				return err
+			}
+			contractAccountModels = append(contractAccountModels, j...)
 		default:
 			continue
 		}
 	}
 
 	bs.accountModels = accountModels
+	bs.contractAccountModels = contractAccountModels
 	bs.balanceModels = balanceModels
 
 	return nil

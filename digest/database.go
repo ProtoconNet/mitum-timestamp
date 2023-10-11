@@ -12,12 +12,13 @@ import (
 )
 
 var (
-	defaultColNameAccount   = "digest_ac"
-	defaultColNameBalance   = "digest_bl"
-	defaultColNameCurrency  = "digest_cr"
-	defaultColNameOperation = "digest_op"
-	defaultColNameTimeStamp = "digest_ts"
-	defaultColNameBlock     = "digest_bm"
+	defaultColNameAccount         = "digest_ac"
+	defaultColNameContractAccount = "digest_ca"
+	defaultColNameBalance         = "digest_bl"
+	defaultColNameCurrency        = "digest_cr"
+	defaultColNameOperation       = "digest_op"
+	defaultColNameTimeStamp       = "digest_ts"
+	defaultColNameBlock           = "digest_bm"
 )
 
 func Timestamp(st *currencydigest.Database, contract string) (types.Design, mitumbase.State, error) {
