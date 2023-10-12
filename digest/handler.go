@@ -41,8 +41,8 @@ type Handlers struct {
 	nodeInfoHandler currencydigest.NodeInfoHandler
 	send            func(interface{}) (base.Operation, error)
 	router          *mux.Router
-	routes          map[ /* path */ string]*mux.Route
-	itemsLimiter    func(string /* request type */) int64
+	routes          map[string]*mux.Route
+	itemsLimiter    func(string) int64
 	rg              *singleflight.Group
 	expireNotFilled time.Duration
 }
@@ -55,6 +55,7 @@ func NewHandlers(
 	st *currencydigest.Database,
 	cache currencydigest.Cache,
 	router *mux.Router,
+	routes map[string]*mux.Route,
 ) *Handlers {
 	var log *logging.Logging
 	if err := util.LoadFromContextOK(ctx, launch.LoggingContextKey, &log); err != nil {
@@ -68,8 +69,8 @@ func NewHandlers(
 		enc:             enc,
 		database:        st,
 		cache:           cache,
-		router:          mux.NewRouter(),
-		routes:          map[string]*mux.Route{},
+		router:          router,
+		routes:          routes,
 		itemsLimiter:    currencydigest.DefaultItemsLimiter,
 		rg:              &singleflight.Group{},
 		expireNotFilled: time.Second * 3,
@@ -102,6 +103,10 @@ func (hd *Handlers) Cache() currencydigest.Cache {
 
 func (hd *Handlers) Router() *mux.Router {
 	return hd.router
+}
+
+func (hd *Handlers) Routes() map[string]*mux.Route {
+	return hd.routes
 }
 
 func (hd *Handlers) Handler() http.Handler {
