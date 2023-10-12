@@ -160,7 +160,7 @@ func (opp *CreateServiceProcessor) Process(
 		return nil, mitumbase.NewBaseOperationProcessReasonError("invalid service design, %q; %w", fact.Target(), err), nil
 	}
 
-	sts[0] = statetimestamp.NewStateMergeValue(
+	sts[0] = state.NewStateMergeValue(
 		statetimestamp.StateKeyServiceDesign(fact.Target()),
 		statetimestamp.NewServiceDesignStateValue(design),
 	)

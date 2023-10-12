@@ -192,11 +192,11 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 	}
 
 	sts := make([]mitumbase.StateMergeValue, 2) // nolint:prealloc
-	sts[0] = statetimestamp.NewStateMergeValue(
+	sts[0] = state.NewStateMergeValue(
 		statetimestamp.StateKeyTimeStampItem(fact.Target(), fact.ProjectId(), idx),
 		statetimestamp.NewTimeStampItemStateValue(tsItem),
 	)
-	sts[1] = statetimestamp.NewStateMergeValue(
+	sts[1] = state.NewStateMergeValue(
 		statetimestamp.StateKeyTimeStampLastIndex(fact.Target(), fact.ProjectId()),
 		statetimestamp.NewTimeStampLastIndexStateValue(fact.ProjectId(), idx),
 	)

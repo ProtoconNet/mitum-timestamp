@@ -80,30 +80,6 @@ func StateKeyServiceDesign(addr mitumbase.Address) string {
 	return fmt.Sprintf("%s%s", StateKeyTimeStampService(addr), StateKeyServiceDesignSuffix)
 }
 
-type StateValueMerger struct {
-	*mitumbase.BaseStateValueMerger
-}
-
-func NewStateValueMerger(height mitumbase.Height, key string, st mitumbase.State) *StateValueMerger {
-	s := &StateValueMerger{
-		BaseStateValueMerger: mitumbase.NewBaseStateValueMerger(height, key, st),
-	}
-
-	return s
-}
-
-func NewStateMergeValue(key string, stv mitumbase.StateValue) mitumbase.StateMergeValue {
-	StateValueMergerFunc := func(height mitumbase.Height, st mitumbase.State) mitumbase.StateValueMerger {
-		return NewStateValueMerger(height, key, st)
-	}
-
-	return mitumbase.NewBaseStateMergeValue(
-		key,
-		stv,
-		StateValueMergerFunc,
-	)
-}
-
 var (
 	TimeStampLastIndexStateValueHint = hint.MustNewHint("mitum-timestamp-last-index-state-value-v0.0.1")
 	StateKeyProjectLastIndexSuffix   = ":timestampidx"
