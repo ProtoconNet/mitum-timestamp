@@ -54,19 +54,19 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 		return pctx, err
 	}
 
-	_ = set.Add(timestamp.AppendHint, func(height base.Height) (base.OperationProcessor, error) {
+	_ = set.Add(timestamp.AppendHint, func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
 		return opr.New(
 			height,
-			db.State,
+			getStatef,
 			nil,
 			nil,
 		)
 	})
 
-	_ = set.Add(timestamp.CreateServiceHint, func(height base.Height) (base.OperationProcessor, error) {
+	_ = set.Add(timestamp.CreateServiceHint, func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
 		return opr.New(
 			height,
-			db.State,
+			getStatef,
 			nil,
 			nil,
 		)
