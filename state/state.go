@@ -15,13 +15,13 @@ import (
 )
 
 var (
-	StateKeyTimeStampPrefix     = "timestamp:"
+	StateKeyTimeStampPrefix     = "timestamp"
 	ServiceDesignStateValueHint = hint.MustNewHint("mitum-timestamp-service-design-state-value-v0.0.1")
-	StateKeyServiceDesignSuffix = ":service"
+	StateKeyServiceDesignSuffix = "service"
 )
 
 func StateKeyTimeStampService(addr mitumbase.Address) string {
-	return fmt.Sprintf("%s%s", StateKeyTimeStampPrefix, addr.String())
+	return fmt.Sprintf("%s:%s", StateKeyTimeStampPrefix, addr.String())
 }
 
 type ServiceDesignStateValue struct {
@@ -77,12 +77,12 @@ func IsStateServiceDesignKey(key string) bool {
 }
 
 func StateKeyServiceDesign(addr mitumbase.Address) string {
-	return fmt.Sprintf("%s%s", StateKeyTimeStampService(addr), StateKeyServiceDesignSuffix)
+	return fmt.Sprintf("%s:%s", StateKeyTimeStampService(addr), StateKeyServiceDesignSuffix)
 }
 
 var (
 	TimeStampLastIndexStateValueHint = hint.MustNewHint("mitum-timestamp-last-index-state-value-v0.0.1")
-	StateKeyProjectLastIndexSuffix   = ":timestampidx"
+	StateKeyProjectLastIndexSuffix   = "timestampidx"
 )
 
 type TimeStampLastIndexStateValue struct {
@@ -140,12 +140,12 @@ func IsStateTimeStampLastIndexKey(key string) bool {
 }
 
 func StateKeyTimeStampLastIndex(addr mitumbase.Address, pid string) string {
-	return fmt.Sprintf("%s:%s%s", StateKeyTimeStampService(addr), pid, StateKeyProjectLastIndexSuffix)
+	return fmt.Sprintf("%s:%s:%s", StateKeyTimeStampService(addr), pid, StateKeyProjectLastIndexSuffix)
 }
 
 var (
 	TimeStampItemStateValueHint = hint.MustNewHint("mitum-timestamp-item-state-value-v0.0.1")
-	StateKeyTimeStampItemSuffix = ":timestampitem"
+	StateKeyTimeStampItemSuffix = "timestampitem"
 )
 
 type TimeStampItemStateValue struct {
@@ -201,16 +201,16 @@ func IsStateTimeStampItemKey(key string) bool {
 }
 
 func StateKeyTimeStampItem(addr mitumbase.Address, pid string, index uint64) string {
-	return fmt.Sprintf("%s:%s:s%s%s", StateKeyTimeStampService(addr), pid, strconv.FormatUint(index, 10), StateKeyTimeStampItemSuffix)
+	return fmt.Sprintf("%s:%s:%s:%s", StateKeyTimeStampService(addr), pid, strconv.FormatUint(index, 10), StateKeyTimeStampItemSuffix)
 }
 
-func ParseStateKey(key string) ([]string, error) {
+func ParseStateKey(key string, Prefix string, expected int) ([]string, error) {
 	parsedKey := strings.Split(key, ":")
-	if parsedKey[0] != StateKeyTimeStampPrefix[:len(StateKeyTimeStampPrefix)-1] {
-		return nil, errors.Errorf("State Key not include TimeStampPrefix, %s", parsedKey)
+	if parsedKey[0] != Prefix[:len(Prefix)-1] {
+		return nil, errors.Errorf("State Key not include Prefix, %s", parsedKey)
 	}
-	if len(parsedKey) < 3 {
-		return nil, errors.Errorf("parsing State Key string failed, %s", parsedKey)
+	if len(parsedKey) < expected {
+		return nil, errors.Errorf("parsed State Key length under %v", expected)
 	} else {
 		return parsedKey, nil
 	}
