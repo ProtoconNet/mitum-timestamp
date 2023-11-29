@@ -204,18 +204,6 @@ func StateKeyTimeStampItem(addr mitumbase.Address, pid string, index uint64) str
 	return fmt.Sprintf("%s:%s:%s:%s", StateKeyTimeStampService(addr), pid, strconv.FormatUint(index, 10), StateKeyTimeStampItemSuffix)
 }
 
-func ParseStateKey(key string, Prefix string, expected int) ([]string, error) {
-	parsedKey := strings.Split(key, ":")
-	if parsedKey[0] != Prefix[:len(Prefix)-1] {
-		return nil, errors.Errorf("State Key not include Prefix, %s", parsedKey)
-	}
-	if len(parsedKey) < expected {
-		return nil, errors.Errorf("parsed State Key length under %v", expected)
-	} else {
-		return parsedKey, nil
-	}
-}
-
 func checkExistsState(
 	key string,
 	getState mitumbase.GetStateFunc,

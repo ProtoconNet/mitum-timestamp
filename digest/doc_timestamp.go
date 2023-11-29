@@ -3,6 +3,7 @@ package digest
 import (
 	mongodb "github.com/ProtoconNet/mitum-currency/v3/digest/mongodb"
 	bson "github.com/ProtoconNet/mitum-currency/v3/digest/util/bson"
+	crcystate "github.com/ProtoconNet/mitum-currency/v3/state"
 	"github.com/ProtoconNet/mitum-timestamp/state"
 	"github.com/ProtoconNet/mitum-timestamp/types"
 	"github.com/ProtoconNet/mitum2/base"
@@ -42,7 +43,7 @@ func (doc TimeStampServiceDesignDoc) MarshalBSON() ([]byte, error) {
 		return nil, err
 	}
 
-	parsedKey, err := state.ParseStateKey(doc.st.Key(), state.StateKeyTimeStampPrefix, 3)
+	parsedKey, err := crcystate.ParseStateKey(doc.st.Key(), state.StateKeyTimeStampPrefix, 3)
 
 	m["contract"] = parsedKey[1]
 	m["height"] = doc.st.Height()
@@ -81,7 +82,7 @@ func (doc TimeStampItemDoc) MarshalBSON() ([]byte, error) {
 		return nil, err
 	}
 
-	parsedKey, err := state.ParseStateKey(doc.st.Key(), state.StateKeyTimeStampPrefix, 5)
+	parsedKey, err := crcystate.ParseStateKey(doc.st.Key(), state.StateKeyTimeStampPrefix, 5)
 	if err != nil {
 		return nil, err
 	}
