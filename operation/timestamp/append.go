@@ -47,6 +47,10 @@ func (fact AppendFact) IsValid(b []byte) error {
 		return errors.Errorf("invalid projectID length %v < 1 or > %v", len(fact.projectID), types.MaxProjectIDLen)
 	}
 
+	if !currencytypes.ReSpcecialChar.Match([]byte(fact.projectID)) {
+		return util.ErrInvalid.Errorf("invalid projectID due to the inclusion of special characters")
+	}
+
 	if len(fact.data) < 1 || len(fact.data) > types.MaxDataLen {
 		return errors.Errorf("invalid data length %v < 1 or > %v", len(fact.data), types.MaxDataLen)
 	}

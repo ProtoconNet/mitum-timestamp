@@ -1,6 +1,7 @@
 package types
 
 import (
+	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
 	"github.com/pkg/errors"
@@ -42,6 +43,10 @@ func NewTimeStampItem(
 func (t TimeStampItem) IsValid([]byte) error {
 	if len(t.projectID) < 1 || len(t.projectID) > MaxProjectIDLen {
 		return errors.Errorf("invalid projectID length %v < 1 or > %v", len(t.projectID), MaxProjectIDLen)
+	}
+
+	if !currencytypes.ReSpcecialChar.Match([]byte(t.projectID)) {
+		return util.ErrInvalid.Errorf("invalid projectID due to the inclusion of special characters")
 	}
 
 	if len(t.data) < 1 || len(t.data) > MaxDataLen {
