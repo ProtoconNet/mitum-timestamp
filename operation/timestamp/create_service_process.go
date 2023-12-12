@@ -152,7 +152,7 @@ func (opp *CreateServiceProcessor) Process(
 		return nil, nil, e.Errorf("expected CreateServiceFact, not %T", op.Fact())
 	}
 
-	sts := make([]mitumbase.StateMergeValue, 3)
+	var sts []mitumbase.StateMergeValue
 	pids := []string(nil)
 
 	design := types.NewDesign(pids...)
@@ -160,10 +160,10 @@ func (opp *CreateServiceProcessor) Process(
 		return nil, mitumbase.NewBaseOperationProcessReasonError("invalid service design, %q; %w", fact.Target(), err), nil
 	}
 
-	sts[0] = state.NewStateMergeValue(
+	sts = append(sts, state.NewStateMergeValue(
 		statetimestamp.StateKeyServiceDesign(fact.Target()),
 		statetimestamp.NewServiceDesignStateValue(design),
-	)
+	))
 
 	st, err := state.ExistsState(stateextension.StateKeyContractAccount(fact.Target()), "key of contract account", getStateFunc)
 	if err != nil {
@@ -176,10 +176,10 @@ func (opp *CreateServiceProcessor) Process(
 	}
 	nca := ca.SetIsActive(true)
 
-	sts[1] = state.NewStateMergeValue(
+	sts = append(sts, state.NewStateMergeValue(
 		stateextension.StateKeyContractAccount(fact.Target()),
 		stateextension.NewContractAccountStateValue(nca),
-	)
+	))
 
 	currencyPolicy, err := state.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
 	if err != nil {
@@ -195,7 +195,7 @@ func (opp *CreateServiceProcessor) Process(
 		), nil
 	}
 
-	st, err = state.ExistsState(
+	senderBalSt, err := state.ExistsState(
 		statecurrency.StateKeyBalance(fact.Sender(), fact.Currency()),
 		"key of sender balance",
 		getStateFunc,
@@ -207,30 +207,55 @@ func (opp *CreateServiceProcessor) Process(
 			err,
 		), nil
 	}
-	sb := state.NewStateMergeValue(st.Key(), st.Value())
 
-	switch b, err := statecurrency.StateBalanceValue(st); {
+	switch senderBal, err := statecurrency.StateBalanceValue(senderBalSt); {
 	case err != nil:
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			"failed to get balance value, %q; %w",
 			statecurrency.StateKeyBalance(fact.Sender(), fact.Currency()),
 			err,
 		), nil
-	case b.Big().Compare(fee) < 0:
+	case senderBal.Big().Compare(fee) < 0:
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			"not enough balance of sender, %q",
 			fact.Sender(),
 		), nil
 	}
 
-	v, ok := sb.Value().(statecurrency.BalanceStateValue)
+	v, ok := senderBalSt.Value().(statecurrency.BalanceStateValue)
 	if !ok {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("expected BalanceStateValue, not %T", sb.Value()), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("expected BalanceStateValue, not %T", senderBalSt.Value()), nil
 	}
-	sts[2] = state.NewStateMergeValue(
-		sb.Key(),
-		statecurrency.NewBalanceStateValue(v.Amount.WithBig(v.Amount.Big().Sub(fee))),
-	)
+
+	if currencyPolicy.Feeer().Receiver() != nil {
+		if err := state.CheckExistsState(statecurrency.StateKeyAccount(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
+			return nil, nil, err
+		} else if feeRcvrSt, found, err := getStateFunc(statecurrency.StateKeyBalance(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
+			return nil, nil, err
+		} else if !found {
+			return nil, nil, errors.Errorf("feeer receiver %s not found", currencyPolicy.Feeer().Receiver())
+		} else if feeRcvrSt.Key() != senderBalSt.Key() {
+			r, ok := feeRcvrSt.Value().(statecurrency.BalanceStateValue)
+			if !ok {
+				return nil, nil, errors.Errorf("expected %T, not %T", statecurrency.BalanceStateValue{}, feeRcvrSt.Value())
+			}
+			sts = append(sts, common.NewBaseStateMergeValue(
+				feeRcvrSt.Key(),
+				statecurrency.NewAddBalanceStateValue(r.Amount.WithBig(fee)),
+				func(height mitumbase.Height, st mitumbase.State) mitumbase.StateValueMerger {
+					return statecurrency.NewBalanceStateValueMerger(height, feeRcvrSt.Key(), fact.currency, st)
+				},
+			))
+
+			sts = append(sts, common.NewBaseStateMergeValue(
+				senderBalSt.Key(),
+				statecurrency.NewDeductBalanceStateValue(v.Amount.WithBig(fee)),
+				func(height mitumbase.Height, st mitumbase.State) mitumbase.StateValueMerger {
+					return statecurrency.NewBalanceStateValueMerger(height, senderBalSt.Key(), fact.currency, st)
+				},
+			))
+		}
+	}
 
 	return sts, nil, nil
 }
