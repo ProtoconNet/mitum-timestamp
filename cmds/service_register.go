@@ -25,9 +25,6 @@ func (cmd *CreateServiceCommand) Run(pctx context.Context) error {
 		return err
 	}
 
-	encs = cmd.Encoders
-	enc = cmd.Encoder
-
 	if err := cmd.parseFlags(); err != nil {
 		return err
 	}
@@ -47,13 +44,13 @@ func (cmd *CreateServiceCommand) parseFlags() error {
 		return err
 	}
 
-	if a, err := cmd.Sender.Encode(enc); err != nil {
+	if a, err := cmd.Sender.Encode(cmd.Encoders.JSON()); err != nil {
 		return errors.Wrapf(err, "invalid sender format; %q", cmd.Sender)
 	} else {
 		cmd.sender = a
 	}
 
-	if a, err := cmd.Target.Encode(enc); err != nil {
+	if a, err := cmd.Target.Encode(cmd.Encoders.JSON()); err != nil {
 		return errors.Wrapf(err, "invalid target format; %q", cmd.Target)
 	} else {
 		cmd.target = a
