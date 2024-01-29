@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/ProtoconNet/mitum2/util"
-	jsonenc "github.com/ProtoconNet/mitum2/util/encoder/json"
+	"github.com/ProtoconNet/mitum2/util/encoder"
 	"github.com/ProtoconNet/mitum2/util/hint"
 )
 
@@ -35,7 +35,7 @@ type TimeStampItemJSONUnmarshaler struct {
 	Data              string    `json:"data"`
 }
 
-func (t *TimeStampItem) DecodeJSON(b []byte, enc *jsonenc.Encoder) error {
+func (t *TimeStampItem) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	e := util.StringError("failed to decode json of NFT")
 
 	var u TimeStampItemJSONUnmarshaler

@@ -5,7 +5,7 @@ import (
 	"github.com/ProtoconNet/mitum-timestamp/types"
 
 	"github.com/ProtoconNet/mitum2/util"
-	jsonenc "github.com/ProtoconNet/mitum2/util/encoder/json"
+	"github.com/ProtoconNet/mitum2/util/encoder"
 	"github.com/ProtoconNet/mitum2/util/hint"
 )
 
@@ -25,7 +25,7 @@ type ServiceDesignStateValueJSONUnmarshaler struct {
 	Design json.RawMessage `json:"design"`
 }
 
-func (s *ServiceDesignStateValue) DecodeJSON(b []byte, enc *jsonenc.Encoder) error {
+func (s *ServiceDesignStateValue) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	e := util.StringError("failed to decode json of ServiceDesignStateValue")
 
 	var u ServiceDesignStateValueJSONUnmarshaler
@@ -62,7 +62,7 @@ type TimeStampLastIndexStateValueJSONUnmarshaler struct {
 	Index     uint64    `json:"index"`
 }
 
-func (s *TimeStampLastIndexStateValue) DecodeJSON(b []byte, enc *jsonenc.Encoder) error {
+func (s *TimeStampLastIndexStateValue) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	e := util.StringError("failed to decode json of TimeStampLastIndexStateValue")
 
 	var u TimeStampLastIndexStateValueJSONUnmarshaler
@@ -93,7 +93,7 @@ type TimeStampItemStateValueJSONUnmarshaler struct {
 	TimeStampItem json.RawMessage `json:"timestampitem"`
 }
 
-func (s *TimeStampItemStateValue) DecodeJSON(b []byte, enc *jsonenc.Encoder) error {
+func (s *TimeStampItemStateValue) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	e := util.StringError("failed to decode json of TimeStampItemStateValue")
 
 	var u TimeStampItemStateValueJSONUnmarshaler
