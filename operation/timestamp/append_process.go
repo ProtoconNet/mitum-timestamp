@@ -150,6 +150,9 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 	}
 
 	design.AddProject(fact.ProjectId())
+	if err := design.IsValid(nil); err != nil {
+		return nil, mitumbase.NewBaseOperationProcessReasonError("invalid service design, %q; %w", fact.Target(), err), nil
+	}
 
 	var idx uint64
 	k := statetimestamp.StateKeyTimeStampLastIndex(fact.Target(), fact.ProjectId())
@@ -201,6 +204,10 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 	sts = append(sts, state.NewStateMergeValue(
 		statetimestamp.StateKeyTimeStampLastIndex(fact.Target(), fact.ProjectId()),
 		statetimestamp.NewTimeStampLastIndexStateValue(fact.ProjectId(), idx),
+	))
+	sts = append(sts, state.NewStateMergeValue(
+		statetimestamp.StateKeyServiceDesign(fact.Target()),
+		statetimestamp.NewServiceDesignStateValue(design),
 	))
 
 	currencyPolicy, err := state.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
