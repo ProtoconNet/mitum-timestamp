@@ -11,7 +11,7 @@ import (
 type AppendFactJSONMarshaler struct {
 	mitumbase.BaseFactJSONMarshaler
 	Sender           mitumbase.Address `json:"sender"`
-	Target           mitumbase.Address `json:"target"`
+	Contract         mitumbase.Address `json:"contract"`
 	ProjectID        string            `json:"projectid"`
 	RequestTimeStamp uint64            `json:"request_timestamp"`
 	Data             string            `json:"data"`
@@ -22,7 +22,7 @@ func (fact AppendFact) MarshalJSON() ([]byte, error) {
 	return util.MarshalJSON(AppendFactJSONMarshaler{
 		BaseFactJSONMarshaler: fact.BaseFact.JSONMarshaler(),
 		Sender:                fact.sender,
-		Target:                fact.target,
+		Contract:              fact.contract,
 		ProjectID:             fact.projectID,
 		RequestTimeStamp:      fact.requestTimeStamp,
 		Data:                  fact.data,
@@ -33,7 +33,7 @@ func (fact AppendFact) MarshalJSON() ([]byte, error) {
 type AppendFactJSONUnmarshaler struct {
 	mitumbase.BaseFactJSONUnmarshaler
 	Sender           string `json:"sender"`
-	Target           string `json:"target"`
+	Contract         string `json:"contract"`
 	ProjectID        string `json:"projectid"`
 	RequestTimeStamp uint64 `json:"request_timestamp"`
 	Data             string `json:"data"`
@@ -41,16 +41,18 @@ type AppendFactJSONUnmarshaler struct {
 }
 
 func (fact *AppendFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
-	e := util.StringError("failed to decode json of AppendFact")
-
 	var u AppendFactJSONUnmarshaler
 	if err := enc.Unmarshal(b, &u); err != nil {
-		return e.Wrap(err)
+		return common.DecorateError(err, common.ErrDecodeJson, *fact)
 	}
 
 	fact.BaseFact.SetJSONUnmarshaler(u.BaseFactJSONUnmarshaler)
 
-	return fact.unmarshal(enc, u.Sender, u.Target, u.ProjectID, u.RequestTimeStamp, u.Data, u.Currency)
+	if err := fact.unpack(enc, u.Sender, u.Contract, u.ProjectID, u.RequestTimeStamp, u.Data, u.Currency); err != nil {
+		return common.DecorateError(err, common.ErrDecodeJson, *fact)
+	}
+
+	return nil
 }
 
 type mintMarshaler struct {
@@ -64,11 +66,9 @@ func (op Append) MarshalJSON() ([]byte, error) {
 }
 
 func (op *Append) DecodeJSON(b []byte, enc encoder.Encoder) error {
-	e := util.StringError("failed to decode json of Mint")
-
 	var ubo common.BaseOperation
 	if err := ubo.DecodeJSON(b, enc); err != nil {
-		return e.Wrap(err)
+		return common.DecorateError(err, common.ErrDecodeJson, *op)
 	}
 
 	op.BaseOperation = ubo

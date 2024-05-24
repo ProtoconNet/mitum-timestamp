@@ -5,7 +5,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 
 	bsonenc "github.com/ProtoconNet/mitum-currency/v3/digest/util/bson"
-	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
 	"github.com/ProtoconNet/mitum2/util/valuehash"
 )
@@ -17,7 +16,7 @@ func (fact CreateServiceFact) MarshalBSON() ([]byte, error) {
 			"hash":     fact.BaseFact.Hash().String(),
 			"token":    fact.BaseFact.Token(),
 			"sender":   fact.sender,
-			"target":   fact.target,
+			"contract": fact.contract,
 			"currency": fact.currency,
 		},
 	)
@@ -26,18 +25,16 @@ func (fact CreateServiceFact) MarshalBSON() ([]byte, error) {
 type CreateServiceFactBSONUnmarshaler struct {
 	Hint     string `bson:"_hint"`
 	Sender   string `bson:"sender"`
-	Target   string `bson:"target"`
+	Contract string `bson:"contract"`
 	Currency string `bson:"currency"`
 }
 
 func (fact *CreateServiceFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
-	e := util.StringError("failed to decode bson of CreateServiceFact")
-
 	var u common.BaseFactBSONUnmarshaler
 
 	err := enc.Unmarshal(b, &u)
 	if err != nil {
-		return e.Wrap(err)
+		return common.DecorateError(err, common.ErrDecodeBson, *fact)
 	}
 
 	fact.BaseFact.SetHash(valuehash.NewBytesFromString(u.Hash))
@@ -45,16 +42,20 @@ func (fact *CreateServiceFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error 
 
 	var uf CreateServiceFactBSONUnmarshaler
 	if err := bson.Unmarshal(b, &uf); err != nil {
-		return e.Wrap(err)
+		return common.DecorateError(err, common.ErrDecodeBson, *fact)
 	}
 
 	ht, err := hint.ParseHint(uf.Hint)
 	if err != nil {
-		return e.Wrap(err)
+		return common.DecorateError(err, common.ErrDecodeBson, *fact)
 	}
 	fact.BaseHinter = hint.NewBaseHinter(ht)
 
-	return fact.unmarshal(enc, uf.Sender, uf.Target, uf.Currency)
+	if err := fact.unpack(enc, uf.Sender, uf.Contract, uf.Currency); err != nil {
+		return common.DecorateError(err, common.ErrDecodeBson, *fact)
+	}
+
+	return nil
 }
 
 func (op CreateService) MarshalBSON() ([]byte, error) {
@@ -69,11 +70,9 @@ func (op CreateService) MarshalBSON() ([]byte, error) {
 }
 
 func (op *CreateService) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
-	e := util.StringError("failed to decode bson of CreateService")
-
 	var ubo common.BaseOperation
 	if err := ubo.DecodeBSON(b, enc); err != nil {
-		return e.Wrap(err)
+		return common.DecorateError(err, common.ErrDecodeBson, *op)
 	}
 
 	op.BaseOperation = ubo

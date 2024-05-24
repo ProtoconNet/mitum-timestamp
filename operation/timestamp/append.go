@@ -19,19 +19,21 @@ var (
 type AppendFact struct {
 	mitumbase.BaseFact
 	sender           mitumbase.Address
-	target           mitumbase.Address
+	contract         mitumbase.Address
 	projectID        string
 	requestTimeStamp uint64
 	data             string
 	currency         currencytypes.CurrencyID
 }
 
-func NewAppendFact(token []byte, sender, target mitumbase.Address, projectID string, requestTimeStamp uint64, data string, currency currencytypes.CurrencyID) AppendFact {
+func NewAppendFact(
+	token []byte, sender, contract mitumbase.Address, projectID string,
+	requestTimeStamp uint64, data string, currency currencytypes.CurrencyID) AppendFact {
 	bf := mitumbase.NewBaseFact(AppendFactHint, token)
 	fact := AppendFact{
 		BaseFact:         bf,
 		sender:           sender,
-		target:           target,
+		contract:         contract,
 		projectID:        projectID,
 		requestTimeStamp: requestTimeStamp,
 		data:             data,
@@ -44,28 +46,39 @@ func NewAppendFact(token []byte, sender, target mitumbase.Address, projectID str
 
 func (fact AppendFact) IsValid(b []byte) error {
 	if len(fact.projectID) < 1 || len(fact.projectID) > types.MaxProjectIDLen {
-		return errors.Errorf("invalid projectID length %v < 1 or > %v", len(fact.projectID), types.MaxProjectIDLen)
+		return common.ErrFactInvalid.Wrap(
+			common.ErrValOOR.Wrap(
+				errors.Errorf(
+					"invalid projectID length %v < 1 or > %v", len(fact.projectID), types.MaxProjectIDLen)))
 	}
 
 	if !currencytypes.ReSpcecialChar.Match([]byte(fact.projectID)) {
-		return util.ErrInvalid.Errorf("invalid projectID due to the inclusion of special characters")
+		return common.ErrFactInvalid.Wrap(
+			common.ErrValueInvalid.Wrap(
+				errors.Errorf("projectID ID %s, must match regex `^[^\\s:/?#\\[\\]@]*$`", fact.projectID)))
 	}
 
 	if len(fact.data) < 1 || len(fact.data) > types.MaxDataLen {
-		return errors.Errorf("invalid data length %v < 1 or > %v", len(fact.data), types.MaxDataLen)
+		return common.ErrFactInvalid.Wrap(
+			common.ErrValOOR.Wrap(
+				errors.Errorf("invalid data length %v < 1 or > %v", len(fact.data), types.MaxDataLen)))
+	}
+
+	if fact.sender.Equal(fact.contract) {
+		return common.ErrFactInvalid.Wrap(errors.Errorf("sender is same with contract"))
 	}
 
 	if err := util.CheckIsValiders(nil, false,
 		fact.BaseHinter,
 		fact.sender,
-		fact.target,
+		fact.contract,
 		fact.currency,
 	); err != nil {
-		return err
+		return common.ErrFactInvalid.Wrap(err)
 	}
 
 	if err := common.IsValidOperationFact(fact, b); err != nil {
-		return err
+		return common.ErrFactInvalid.Wrap(err)
 	}
 
 	return nil
@@ -83,7 +96,7 @@ func (fact AppendFact) Bytes() []byte {
 	return util.ConcatBytesSlice(
 		fact.Token(),
 		fact.sender.Bytes(),
-		fact.target.Bytes(),
+		fact.contract.Bytes(),
 		[]byte(fact.projectID),
 		util.Uint64ToBytes(fact.requestTimeStamp),
 		[]byte(fact.data),
@@ -99,8 +112,8 @@ func (fact AppendFact) Sender() mitumbase.Address {
 	return fact.sender
 }
 
-func (fact AppendFact) Target() mitumbase.Address {
-	return fact.target
+func (fact AppendFact) Contract() mitumbase.Address {
+	return fact.contract
 }
 
 func (fact AppendFact) ProjectId() string {

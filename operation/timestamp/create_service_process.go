@@ -23,11 +23,11 @@ var createServiceProcessorPool = sync.Pool{
 	},
 }
 
-func (CreateService) Process(
-	_ context.Context, _ mitumbase.GetStateFunc,
-) ([]mitumbase.StateMergeValue, mitumbase.OperationProcessReasonError, error) {
-	return nil, nil, nil
-}
+//func (CreateService) Process(
+//	_ context.Context, _ mitumbase.GetStateFunc,
+//) ([]mitumbase.StateMergeValue, mitumbase.OperationProcessReasonError, error) {
+//	return nil, nil, nil
+//}
 
 type CreateServiceProcessor struct {
 	*mitumbase.BaseOperationProcessor
@@ -63,79 +63,74 @@ func NewCreateServiceProcessor() currencytypes.GetNewProcessor {
 func (opp *CreateServiceProcessor) PreProcess(
 	ctx context.Context, op mitumbase.Operation, getStateFunc mitumbase.GetStateFunc,
 ) (context.Context, mitumbase.OperationProcessReasonError, error) {
-	e := util.StringError("failed to preprocess CreateService")
-
 	fact, ok := op.Fact().(CreateServiceFact)
 	if !ok {
-		return ctx, nil, e.Errorf("expected CreateServiceFact, not %T", op.Fact())
+		return ctx, mitumbase.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.
+				Wrap(common.ErrMTypeMismatch).
+				Errorf("expected %T, not %T", CreateServiceFact{}, op.Fact())), nil
 	}
 
 	if err := fact.IsValid(nil); err != nil {
-		return ctx, nil, e.Wrap(err)
-	}
-
-	if err := state.CheckExistsState(statecurrency.StateKeyAccount(fact.Sender()), getStateFunc); err != nil {
-		return ctx, mitumbase.NewBaseOperationProcessReasonError("sender not found, %q; %w", fact.Sender(), err), nil
-	}
-
-	_, err := state.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
-	if err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("currency not found, %q; %w", fact.Currency(), err), nil
-	}
-
-	if err := state.CheckNotExistsState(stateextension.StateKeyContractAccount(fact.Sender()), getStateFunc); err != nil {
 		return ctx, mitumbase.NewBaseOperationProcessReasonError(
-			"sender address is contract account, %q",
-			fact.Sender(),
-		), nil
+			common.ErrMPreProcess.
+				Errorf("%v", err)), nil
+	}
+
+	if err := state.CheckExistsState(statecurrency.StateKeyCurrencyDesign(fact.Currency()), getStateFunc); err != nil {
+		return ctx, mitumbase.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id, %v", fact.Currency())), nil
+	}
+
+	if _, _, aErr, cErr := state.ExistsCAccount(fact.Sender(), "sender", true, false, getStateFunc); aErr != nil {
+		return ctx, mitumbase.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.
+				Errorf("%v", aErr)), nil
+	} else if cErr != nil {
+		return ctx, mitumbase.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.Wrap(common.ErrMCAccountNA).
+				Errorf("%v", cErr)), nil
 	}
 
 	if err := state.CheckFactSignsByState(fact.Sender(), op.Signs(), getStateFunc); err != nil {
-		return ctx, mitumbase.NewBaseOperationProcessReasonError("invalid signing; %w", err), nil
+		return ctx, mitumbase.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.
+				Wrap(common.ErrMSignInvalid).
+				Errorf("%v", err),
+		), nil
 	}
 
-	st, err := state.ExistsState(
-		stateextension.StateKeyContractAccount(fact.Target()),
-		"key of contract account",
-		getStateFunc,
-	)
+	_, cSt, aErr, cErr := state.ExistsCAccount(fact.Contract(), "contract", true, true, getStateFunc)
+	if aErr != nil {
+		return ctx, mitumbase.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.
+				Errorf("%v", aErr)), nil
+	} else if cErr != nil {
+		return ctx, mitumbase.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.
+				Errorf("%v", cErr)), nil
+	}
+
+	ca, err := stateextension.CheckCAAuthFromState(cSt, fact.Sender())
 	if err != nil {
 		return ctx, mitumbase.NewBaseOperationProcessReasonError(
-			"target contract account not found, %q; %w",
-			fact.Target(),
-			err,
-		), nil
-	}
-
-	ca, err := stateextension.StateContractAccountValue(st)
-	if err != nil {
-		return ctx, mitumbase.NewBaseOperationProcessReasonError(
-			"failed to get state value of contract account, %q; %w",
-			fact.Target(),
-			err,
-		), nil
-	}
-
-	if !(ca.Owner().Equal(fact.Sender()) || ca.IsOperator(fact.Sender())) {
-		return nil, mitumbase.NewBaseOperationProcessReasonError(
-			"sender is neither the owner nor the operator of the target contract account, %q",
-			fact.Sender(),
-		), nil
+			common.ErrMPreProcess.
+				Errorf("%v", err)), nil
 	}
 
 	if ca.IsActive() {
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
-			"a contract account is already used, %q",
-			fact.Target().String(),
-		), nil
+			common.ErrMPreProcess.
+				Wrap(common.ErrMServiceE).Errorf("timestamp service, %v", fact.Contract())), nil
 	}
 
-	if err := state.CheckNotExistsState(statetimestamp.StateKeyServiceDesign(fact.Target()), getStateFunc); err != nil {
+	if found, _ := state.CheckNotExistsState(statetimestamp.StateKeyServiceDesign(fact.Contract()), getStateFunc); found {
 		return ctx, mitumbase.NewBaseOperationProcessReasonError(
-			"service design already exists, %q; %w",
-			fact.Target(),
-			err,
-		), nil
+			common.ErrMPreProcess.
+				Wrap(common.ErrMServiceE).Errorf("timestamp service, %v; %v",
+				fact.Contract(),
+				err,
+			)), nil
 	}
 
 	return ctx, nil, nil
@@ -157,27 +152,27 @@ func (opp *CreateServiceProcessor) Process(
 
 	design := types.NewDesign(pids...)
 	if err := design.IsValid(nil); err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("invalid service design, %q; %w", fact.Target(), err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("invalid service design, %q; %w", fact.Contract(), err), nil
 	}
 
 	sts = append(sts, state.NewStateMergeValue(
-		statetimestamp.StateKeyServiceDesign(fact.Target()),
+		statetimestamp.StateKeyServiceDesign(fact.Contract()),
 		statetimestamp.NewServiceDesignStateValue(design),
 	))
 
-	st, err := state.ExistsState(stateextension.StateKeyContractAccount(fact.Target()), "key of contract account", getStateFunc)
+	st, err := state.ExistsState(stateextension.StateKeyContractAccount(fact.Contract()), "key of contract account", getStateFunc)
 	if err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("target contract account not found, %q; %w", fact.Target(), err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("contract account not found, %q; %w", fact.Contract(), err), nil
 	}
 
 	ca, err := stateextension.StateContractAccountValue(st)
 	if err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("failed to get state value of contract account, %q; %w", fact.Target(), err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("failed to get state value of contract account, %q; %w", fact.Contract(), err), nil
 	}
 	nca := ca.SetIsActive(true)
 
 	sts = append(sts, state.NewStateMergeValue(
-		stateextension.StateKeyContractAccount(fact.Target()),
+		stateextension.StateKeyContractAccount(fact.Contract()),
 		stateextension.NewContractAccountStateValue(nca),
 	))
 

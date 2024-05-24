@@ -17,16 +17,16 @@ var (
 type CreateServiceFact struct {
 	mitumbase.BaseFact
 	sender   mitumbase.Address
-	target   mitumbase.Address
+	contract mitumbase.Address
 	currency types.CurrencyID
 }
 
-func NewCreateServiceFact(token []byte, sender, target mitumbase.Address, currency types.CurrencyID) CreateServiceFact {
+func NewCreateServiceFact(token []byte, sender, contract mitumbase.Address, currency types.CurrencyID) CreateServiceFact {
 	bf := mitumbase.NewBaseFact(CreateServiceFactHint, token)
 	fact := CreateServiceFact{
 		BaseFact: bf,
 		sender:   sender,
-		target:   target,
+		contract: contract,
 		currency: currency,
 	}
 	fact.SetHash(fact.GenerateHash())
@@ -36,19 +36,19 @@ func NewCreateServiceFact(token []byte, sender, target mitumbase.Address, curren
 
 func (fact CreateServiceFact) IsValid(b []byte) error {
 	if err := fact.BaseHinter.IsValid(nil); err != nil {
-		return err
+		return common.ErrFactInvalid.Wrap(err)
 	}
 
 	if err := util.CheckIsValiders(nil, false,
 		fact.sender,
-		fact.target,
+		fact.contract,
 		fact.currency,
 	); err != nil {
-		return err
+		return common.ErrFactInvalid.Wrap(err)
 	}
 
 	if err := common.IsValidOperationFact(fact, b); err != nil {
-		return err
+		return common.ErrFactInvalid.Wrap(err)
 	}
 
 	return nil
@@ -66,7 +66,7 @@ func (fact CreateServiceFact) Bytes() []byte {
 	return util.ConcatBytesSlice(
 		fact.Token(),
 		fact.sender.Bytes(),
-		fact.target.Bytes(),
+		fact.contract.Bytes(),
 		fact.currency.Bytes(),
 	)
 }
@@ -79,12 +79,12 @@ func (fact CreateServiceFact) Sender() mitumbase.Address {
 	return fact.sender
 }
 
-func (fact CreateServiceFact) Target() mitumbase.Address {
-	return fact.target
+func (fact CreateServiceFact) Contract() mitumbase.Address {
+	return fact.contract
 }
 
 func (fact CreateServiceFact) Addresses() ([]mitumbase.Address, error) {
-	return []mitumbase.Address{fact.sender, fact.target}, nil
+	return []mitumbase.Address{fact.sender, fact.contract}, nil
 }
 
 func (fact CreateServiceFact) Currency() types.CurrencyID {

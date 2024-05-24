@@ -5,7 +5,6 @@ import (
 
 	"github.com/ProtoconNet/mitum-currency/v3/common"
 	bsonenc "github.com/ProtoconNet/mitum-currency/v3/digest/util/bson"
-	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
 	"github.com/ProtoconNet/mitum2/util/valuehash"
 )
@@ -17,7 +16,7 @@ func (fact AppendFact) MarshalBSON() ([]byte, error) {
 			"hash":              fact.BaseFact.Hash().String(),
 			"token":             fact.BaseFact.Token(),
 			"sender":            fact.sender,
-			"target":            fact.target,
+			"contract":          fact.contract,
 			"projectid":         fact.projectID,
 			"request_timestamp": fact.requestTimeStamp,
 			"data":              fact.data,
@@ -29,7 +28,7 @@ func (fact AppendFact) MarshalBSON() ([]byte, error) {
 type AppendFactBSONUnmarshaler struct {
 	Hint             string `bson:"_hint"`
 	Sender           string `bson:"sender"`
-	Target           string `bson:"target"`
+	Contract         string `bson:"contract"`
 	ProjectID        string `bson:"projectid"`
 	RequestTimeStamp uint64 `bson:"request_timestamp"`
 	Data             string `bson:"data"`
@@ -37,13 +36,11 @@ type AppendFactBSONUnmarshaler struct {
 }
 
 func (fact *AppendFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
-	e := util.StringError("failed to decode bson of AppendFact")
-
 	var u common.BaseFactBSONUnmarshaler
 
 	err := enc.Unmarshal(b, &u)
 	if err != nil {
-		return e.Wrap(err)
+		return common.DecorateError(err, common.ErrDecodeBson, *fact)
 	}
 
 	fact.BaseFact.SetHash(valuehash.NewBytesFromString(u.Hash))
@@ -51,16 +48,20 @@ func (fact *AppendFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 
 	var uf AppendFactBSONUnmarshaler
 	if err := bson.Unmarshal(b, &uf); err != nil {
-		return e.Wrap(err)
+		return common.DecorateError(err, common.ErrDecodeBson, *fact)
 	}
 
 	ht, err := hint.ParseHint(uf.Hint)
 	if err != nil {
-		return e.Wrap(err)
+		return common.DecorateError(err, common.ErrDecodeBson, *fact)
 	}
 	fact.BaseHinter = hint.NewBaseHinter(ht)
 
-	return fact.unmarshal(enc, uf.Sender, uf.Target, uf.ProjectID, uf.RequestTimeStamp, uf.Data, uf.Currency)
+	if err := fact.unpack(enc, uf.Sender, uf.Contract, uf.ProjectID, uf.RequestTimeStamp, uf.Data, uf.Currency); err != nil {
+		return common.DecorateError(err, common.ErrDecodeBson, *fact)
+	}
+
+	return nil
 }
 
 func (op Append) MarshalBSON() ([]byte, error) {
@@ -74,11 +75,9 @@ func (op Append) MarshalBSON() ([]byte, error) {
 }
 
 func (op *Append) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
-	e := util.StringError("failed to decode bson of Mint")
-
 	var ubo common.BaseOperation
 	if err := ubo.DecodeBSON(b, enc); err != nil {
-		return e.Wrap(err)
+		return common.DecorateError(err, common.ErrDecodeBson, *op)
 	}
 
 	op.BaseOperation = ubo

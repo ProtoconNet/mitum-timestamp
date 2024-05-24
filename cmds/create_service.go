@@ -14,10 +14,10 @@ type CreateServiceCommand struct {
 	BaseCommand
 	currencycmds.OperationFlags
 	Sender   currencycmds.AddressFlag    `arg:"" name:"sender" help:"sender address" required:"true"`
-	Target   currencycmds.AddressFlag    `arg:"" name:"target" help:"target account to register policy" required:"true"`
+	Contract currencycmds.AddressFlag    `arg:"" name:"contract" help:"contract account to register policy" required:"true"`
 	Currency currencycmds.CurrencyIDFlag `arg:"" name:"currency" help:"currency id" required:"true"`
 	sender   base.Address
-	target   base.Address
+	contract base.Address
 }
 
 func (cmd *CreateServiceCommand) Run(pctx context.Context) error {
@@ -50,10 +50,10 @@ func (cmd *CreateServiceCommand) parseFlags() error {
 		cmd.sender = a
 	}
 
-	if a, err := cmd.Target.Encode(cmd.Encoders.JSON()); err != nil {
-		return errors.Wrapf(err, "invalid target format; %q", cmd.Target)
+	if a, err := cmd.Contract.Encode(cmd.Encoders.JSON()); err != nil {
+		return errors.Wrapf(err, "invalid contract format; %q", cmd.Contract)
 	} else {
-		cmd.target = a
+		cmd.contract = a
 	}
 
 	return nil
@@ -62,7 +62,7 @@ func (cmd *CreateServiceCommand) parseFlags() error {
 func (cmd *CreateServiceCommand) createOperation() (base.Operation, error) {
 	e := util.StringError("failed to create creates-service operation")
 
-	fact := timestampservice.NewCreateServiceFact([]byte(cmd.Token), cmd.sender, cmd.target, cmd.Currency.CID)
+	fact := timestampservice.NewCreateServiceFact([]byte(cmd.Token), cmd.sender, cmd.contract, cmd.Currency.CID)
 
 	op, err := timestampservice.NewCreateService(fact)
 	if err != nil {

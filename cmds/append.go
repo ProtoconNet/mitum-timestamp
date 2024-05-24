@@ -13,13 +13,13 @@ type AppendCommand struct {
 	BaseCommand
 	currencycmds.OperationFlags
 	Sender           currencycmds.AddressFlag    `arg:"" name:"sender" help:"sender address" required:"true"`
-	Target           currencycmds.AddressFlag    `arg:"" name:"target" help:"target address" required:"true"`
+	Contract         currencycmds.AddressFlag    `arg:"" name:"contract" help:"contract address" required:"true"`
 	ProjectID        string                      `arg:"" name:"project id" help:"project id" required:"true"`
 	RequestTimeStamp uint64                      `arg:"" name:"request timestamp" help:"request timestamp" required:"true"`
 	Data             string                      `arg:"" name:"data" help:"data" required:"true"`
 	Currency         currencycmds.CurrencyIDFlag `arg:"" name:"currency" help:"currency id" required:"true"`
 	sender           base.Address
-	target           base.Address
+	contract         base.Address
 }
 
 func (cmd *AppendCommand) Run(pctx context.Context) error { // nolint:dupl
@@ -53,11 +53,11 @@ func (cmd *AppendCommand) parseFlags() error {
 		cmd.sender = a
 	}
 
-	a, err = cmd.Target.Encode(cmd.Encoders.JSON())
+	a, err = cmd.Contract.Encode(cmd.Encoders.JSON())
 	if err != nil {
-		return errors.Wrapf(err, "invalid target format, %q", cmd.Target)
+		return errors.Wrapf(err, "invalid contract format, %q", cmd.Contract)
 	} else {
-		cmd.target = a
+		cmd.contract = a
 	}
 
 	if len(cmd.ProjectID) < 1 {
@@ -78,7 +78,7 @@ func (cmd *AppendCommand) parseFlags() error {
 func (cmd *AppendCommand) createOperation() (base.Operation, error) { // nolint:dupl
 	e := util.StringError("failed to create append operation")
 
-	fact := timestampservice.NewAppendFact([]byte(cmd.Token), cmd.sender, cmd.target, cmd.ProjectID, cmd.RequestTimeStamp, cmd.Data, cmd.Currency.CID)
+	fact := timestampservice.NewAppendFact([]byte(cmd.Token), cmd.sender, cmd.contract, cmd.ProjectID, cmd.RequestTimeStamp, cmd.Data, cmd.Currency.CID)
 
 	op, err := timestampservice.NewAppend(fact)
 	if err != nil {

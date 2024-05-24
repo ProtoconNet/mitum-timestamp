@@ -3,30 +3,27 @@ package timestamp
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/types"
 	mitumbase "github.com/ProtoconNet/mitum2/base"
-	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
-func (fact *AppendFact) unmarshal(
+func (fact *AppendFact) unpack(
 	enc encoder.Encoder,
 	sa, ta, pid string,
 	rqts uint64,
 	data, cid string,
 ) error {
-	e := util.StringError("failed to unmarshal AppendFact")
-
 	switch sender, err := mitumbase.DecodeAddress(sa, enc); {
 	case err != nil:
-		return e.Wrap(err)
+		return err
 	default:
 		fact.sender = sender
 	}
 
-	switch target, err := mitumbase.DecodeAddress(ta, enc); {
+	switch contract, err := mitumbase.DecodeAddress(ta, enc); {
 	case err != nil:
-		return e.Wrap(err)
+		return err
 	default:
-		fact.target = target
+		fact.contract = contract
 	}
 
 	fact.projectID = pid

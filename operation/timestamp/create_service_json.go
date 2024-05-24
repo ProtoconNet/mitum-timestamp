@@ -11,7 +11,7 @@ import (
 type CreateServiceFactJSONMarshaler struct {
 	mitumbase.BaseFactJSONMarshaler
 	Sender   mitumbase.Address `json:"sender"`
-	Target   mitumbase.Address `json:"target"`
+	Contract mitumbase.Address `json:"contract"`
 	Currency types.CurrencyID  `json:"currency"`
 }
 
@@ -19,7 +19,7 @@ func (fact CreateServiceFact) MarshalJSON() ([]byte, error) {
 	return util.MarshalJSON(CreateServiceFactJSONMarshaler{
 		BaseFactJSONMarshaler: fact.BaseFact.JSONMarshaler(),
 		Sender:                fact.sender,
-		Target:                fact.target,
+		Contract:              fact.contract,
 		Currency:              fact.currency,
 	})
 }
@@ -27,21 +27,23 @@ func (fact CreateServiceFact) MarshalJSON() ([]byte, error) {
 type CreateServiceFactJSONUnmarshaler struct {
 	mitumbase.BaseFactJSONUnmarshaler
 	Sender   string `json:"sender"`
-	Target   string `json:"target"`
+	Contract string `json:"contract"`
 	Currency string `json:"currency"`
 }
 
 func (fact *CreateServiceFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
-	e := util.StringError("failed to decode json of CreateServiceFact")
-
 	var u CreateServiceFactJSONUnmarshaler
 	if err := enc.Unmarshal(b, &u); err != nil {
-		return e.Wrap(err)
+		return common.DecorateError(err, common.ErrDecodeJson, *fact)
 	}
 
 	fact.BaseFact.SetJSONUnmarshaler(u.BaseFactJSONUnmarshaler)
 
-	return fact.unmarshal(enc, u.Sender, u.Target, u.Currency)
+	if err := fact.unpack(enc, u.Sender, u.Contract, u.Currency); err != nil {
+		return common.DecorateError(err, common.ErrDecodeJson, *fact)
+	}
+
+	return nil
 }
 
 type createServiceMarshaler struct {
@@ -55,11 +57,9 @@ func (op CreateService) MarshalJSON() ([]byte, error) {
 }
 
 func (op *CreateService) DecodeJSON(b []byte, enc encoder.Encoder) error {
-	e := util.StringError("failed to decode json of CreateService")
-
 	var ubo common.BaseOperation
 	if err := ubo.DecodeJSON(b, enc); err != nil {
-		return e.Wrap(err)
+		return common.DecorateError(err, common.ErrDecodeJson, *op)
 	}
 
 	op.BaseOperation = ubo
