@@ -9,15 +9,14 @@ import (
 	"github.com/ProtoconNet/mitum-timestamp/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
-	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
 type TestAppendProcessor struct {
 	*test.BaseTestOperationProcessorNoItem[Append]
 }
 
-func NewTestAppendProcessor(encs *encoder.Encoders) TestAppendProcessor {
-	t := test.NewBaseTestOperationProcessorNoItem[Append](encs)
+func NewTestAppendProcessor(tp *test.TestProcessor) TestAppendProcessor {
+	t := test.NewBaseTestOperationProcessorNoItem[Append](tp)
 	return TestAppendProcessor{BaseTestOperationProcessorNoItem: &t}
 }
 

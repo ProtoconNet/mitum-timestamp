@@ -9,15 +9,14 @@ import (
 	"github.com/ProtoconNet/mitum-timestamp/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
-	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
 type TestCreateServiceProcessor struct {
 	*test.BaseTestOperationProcessorNoItem[CreateService]
 }
 
-func NewTestCreateServiceProcessor(encs *encoder.Encoders) TestCreateServiceProcessor {
-	t := test.NewBaseTestOperationProcessorNoItem[CreateService](encs)
+func NewTestCreateServiceProcessor(tp *test.TestProcessor) TestCreateServiceProcessor {
+	t := test.NewBaseTestOperationProcessorNoItem[CreateService](tp)
 	return TestCreateServiceProcessor{&t}
 }
 
