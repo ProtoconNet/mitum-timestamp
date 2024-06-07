@@ -81,7 +81,7 @@ func (opp *AppendProcessor) PreProcess(
 
 	if err := state.CheckExistsState(statecurrency.StateKeyCurrencyDesign(fact.Currency()), getStateFunc); err != nil {
 		return ctx, mitumbase.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id, %v", fact.Currency())), nil
+			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id %v", fact.Currency())), nil
 	}
 
 	if _, _, aErr, cErr := state.ExistsCAccount(fact.Sender(), "sender", true, false, getStateFunc); aErr != nil {
@@ -112,23 +112,17 @@ func (opp *AppendProcessor) PreProcess(
 				Errorf("%v", cErr)), nil
 	}
 
-	ca, err := stateextension.CheckCAAuthFromState(cSt, fact.Sender())
+	_, err := stateextension.CheckCAAuthFromState(cSt, fact.Sender())
 	if err != nil {
 		return ctx, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Errorf("%v", err)), nil
 	}
 
-	if !ca.IsActive() {
-		return nil, mitumbase.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceNF).Errorf("timestamp service, %v", fact.Contract())), nil
-	}
-
 	if err := state.CheckExistsState(statetimestamp.StateKeyServiceDesign(fact.Contract()), getStateFunc); err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceNF).Errorf("timestamp service, %v",
+				Wrap(common.ErrMServiceNF).Errorf("timestamp service for contract account %v",
 				fact.Contract(),
 			)), nil
 	}
@@ -164,7 +158,7 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 		return nil, nil, e.Errorf("expected AppendFact, not %T", op.Fact())
 	}
 
-	st, err := state.ExistsState(statetimestamp.StateKeyServiceDesign(fact.Contract()), "key of service design", getStateFunc)
+	st, err := state.ExistsState(statetimestamp.StateKeyServiceDesign(fact.Contract()), "service design", getStateFunc)
 	if err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError("service design not found, %q; %w", fact.Contract(), err), nil
 	}
@@ -255,12 +249,12 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 
 	senderBalSt, err := state.ExistsState(
 		statecurrency.StateKeyBalance(fact.Sender(), fact.Currency()),
-		"key of sender balance",
+		"sender balance",
 		getStateFunc,
 	)
 	if err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
-			"sender balance not found, %q; %w",
+			"sender %v balance not found; %w",
 			fact.Sender(),
 			err,
 		), nil

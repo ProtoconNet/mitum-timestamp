@@ -65,7 +65,8 @@ func (fact AppendFact) IsValid(b []byte) error {
 	}
 
 	if fact.sender.Equal(fact.contract) {
-		return common.ErrFactInvalid.Wrap(errors.Errorf("sender is same with contract"))
+		return common.ErrFactInvalid.Wrap(
+			common.ErrSelfTarget.Wrap(errors.Errorf("sender %v is same with contract account", fact.sender)))
 	}
 
 	if err := util.CheckIsValiders(nil, false,

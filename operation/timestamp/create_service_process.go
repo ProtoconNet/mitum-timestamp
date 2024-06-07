@@ -92,14 +92,6 @@ func (opp *CreateServiceProcessor) PreProcess(
 				Errorf("%v", cErr)), nil
 	}
 
-	if err := state.CheckFactSignsByState(fact.Sender(), op.Signs(), getStateFunc); err != nil {
-		return ctx, mitumbase.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.
-				Wrap(common.ErrMSignInvalid).
-				Errorf("%v", err),
-		), nil
-	}
-
 	_, cSt, aErr, cErr := state.ExistsCAccount(fact.Contract(), "contract", true, true, getStateFunc)
 	if aErr != nil {
 		return ctx, mitumbase.NewBaseOperationProcessReasonError(
@@ -121,16 +113,24 @@ func (opp *CreateServiceProcessor) PreProcess(
 	if ca.IsActive() {
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceE).Errorf("timestamp service, %v", fact.Contract())), nil
+				Wrap(common.ErrMServiceE).Errorf(
+				"contract account %v has already been activated", fact.Contract())), nil
 	}
 
 	if found, _ := state.CheckNotExistsState(statetimestamp.StateKeyServiceDesign(fact.Contract()), getStateFunc); found {
 		return ctx, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceE).Errorf("timestamp service, %v; %v",
+				Wrap(common.ErrMServiceE).Errorf("timestamp service for contract account %v",
 				fact.Contract(),
-				err,
 			)), nil
+	}
+
+	if err := state.CheckFactSignsByState(fact.Sender(), op.Signs(), getStateFunc); err != nil {
+		return ctx, mitumbase.NewBaseOperationProcessReasonError(
+			common.ErrMPreProcess.
+				Wrap(common.ErrMSignInvalid).
+				Errorf("%v", err),
+		), nil
 	}
 
 	return ctx, nil, nil
@@ -160,7 +160,7 @@ func (opp *CreateServiceProcessor) Process(
 		statetimestamp.NewServiceDesignStateValue(design),
 	))
 
-	st, err := state.ExistsState(stateextension.StateKeyContractAccount(fact.Contract()), "key of contract account", getStateFunc)
+	st, err := state.ExistsState(stateextension.StateKeyContractAccount(fact.Contract()), "contract account", getStateFunc)
 	if err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError("contract account not found, %q; %w", fact.Contract(), err), nil
 	}
@@ -196,12 +196,12 @@ func (opp *CreateServiceProcessor) Process(
 
 	senderBalSt, err := state.ExistsState(
 		statecurrency.StateKeyBalance(fact.Sender(), fact.Currency()),
-		"key of sender balance",
+		"sender balance",
 		getStateFunc,
 	)
 	if err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
-			"sender balance not found, %q; %w",
+			"sender %v balance not found; %w",
 			fact.Sender(),
 			err,
 		), nil

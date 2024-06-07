@@ -7,6 +7,7 @@ import (
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
 	"github.com/ProtoconNet/mitum2/util/valuehash"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -37,6 +38,10 @@ func NewCreateServiceFact(token []byte, sender, contract mitumbase.Address, curr
 func (fact CreateServiceFact) IsValid(b []byte) error {
 	if err := fact.BaseHinter.IsValid(nil); err != nil {
 		return common.ErrFactInvalid.Wrap(err)
+	}
+
+	if fact.sender.Equal(fact.contract) {
+		return common.ErrFactInvalid.Wrap(common.ErrSelfTarget.Wrap(errors.Errorf("sender %v is same with contract account", fact.sender)))
 	}
 
 	if err := util.CheckIsValiders(nil, false,
