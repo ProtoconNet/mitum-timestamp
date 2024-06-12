@@ -3,6 +3,7 @@ package digest
 import (
 	"context"
 	currencydigest "github.com/ProtoconNet/mitum-currency/v3/digest"
+	"github.com/ProtoconNet/mitum-currency/v3/types"
 	isaacnetwork "github.com/ProtoconNet/mitum2/isaac/network"
 	"github.com/ProtoconNet/mitum2/network/quicmemberlist"
 	"github.com/ProtoconNet/mitum2/network/quicstream"
@@ -22,8 +23,8 @@ import (
 )
 
 var (
-	HandlerPathTimeStampService = `/timestamp/{contract:.*}/service`
-	HandlerPathTimeStampItem    = `/timestamp/{contract:.*}/project/{project:.+}/id/{tid:[0-9]+}`
+	HandlerPathTimeStampDesign = `/timestamp/{contract:(?i)` + types.REStringAddressString + `}`
+	HandlerPathTimeStampItem   = `/timestamp/{contract:(?i)` + types.REStringAddressString + `}/project/{project_id:.+}/idx/{timestamp_idx:[0-9]+}`
 )
 
 func init() {
@@ -120,7 +121,7 @@ func (hd *Handlers) Handler() http.Handler {
 func (hd *Handlers) setHandlers() {
 	_ = hd.setHandler(HandlerPathTimeStampItem, hd.handleTimeStampItem, true).
 		Methods(http.MethodOptions, "GET")
-	_ = hd.setHandler(HandlerPathTimeStampService, hd.handleTimeStamp, true).
+	_ = hd.setHandler(HandlerPathTimeStampDesign, hd.handleTimeStampDesign, true).
 		Methods(http.MethodOptions, "GET")
 }
 

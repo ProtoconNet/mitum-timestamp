@@ -43,18 +43,18 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 	}
 
 	if err := opr.SetProcessor(
-		timestamp.CreateServiceHint,
-		timestamp.NewCreateServiceProcessor(),
+		timestamp.RegisterModelHint,
+		timestamp.NewRegisterModelProcessor(),
 	); err != nil {
 		return pctx, err
 	} else if err := opr.SetProcessor(
-		timestamp.AppendHint,
-		timestamp.NewAppendProcessor(db.LastBlockMap),
+		timestamp.IssueHint,
+		timestamp.NewIssueProcessor(db.LastBlockMap),
 	); err != nil {
 		return pctx, err
 	}
 
-	_ = set.Add(timestamp.AppendHint, func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+	_ = set.Add(timestamp.IssueHint, func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
 		return opr.New(
 			height,
 			getStatef,
@@ -63,7 +63,7 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 		)
 	})
 
-	_ = set.Add(timestamp.CreateServiceHint, func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+	_ = set.Add(timestamp.RegisterModelHint, func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
 		return opr.New(
 			height,
 			getStatef,

@@ -12,16 +12,16 @@ import (
 )
 
 type TestAppendProcessor struct {
-	*test.BaseTestOperationProcessorNoItem[Append]
+	*test.BaseTestOperationProcessorNoItem[Issue]
 }
 
 func NewTestAppendProcessor(tp *test.TestProcessor) TestAppendProcessor {
-	t := test.NewBaseTestOperationProcessorNoItem[Append](tp)
+	t := test.NewBaseTestOperationProcessorNoItem[Issue](tp)
 	return TestAppendProcessor{BaseTestOperationProcessorNoItem: &t}
 }
 
 func (t *TestAppendProcessor) Create() *TestAppendProcessor {
-	t.Opr, _ = NewAppendProcessor(func() (base.BlockMap, bool, error) { return nil, true, nil })(
+	t.Opr, _ = NewIssueProcessor(func() (base.BlockMap, bool, error) { return nil, true, nil })(
 		base.GenesisHeight,
 		t.GetStateFunc,
 		nil, nil,
@@ -93,7 +93,7 @@ func (t *TestAppendProcessor) SetService(
 	pids := []string(nil)
 	design := types.NewDesign(pids...)
 
-	st := common.NewBaseState(base.Height(1), statetimestamp.StateKeyServiceDesign(contract), statetimestamp.NewServiceDesignStateValue(design), nil, []util.Hash{})
+	st := common.NewBaseState(base.Height(1), statetimestamp.DesignStateKey(contract), statetimestamp.NewDesignStateValue(design), nil, []util.Hash{})
 	t.SetState(st, true)
 
 	cst, found, _ := t.MockGetter.Get(extension.StateKeyContractAccount(contract))
@@ -121,8 +121,8 @@ func (t *TestAppendProcessor) MakeOperation(
 	data string,
 	currency currencytypes.CurrencyID,
 ) *TestAppendProcessor {
-	op, _ := NewAppend(
-		NewAppendFact(
+	op, _ := NewIssue(
+		NewIssueFact(
 			[]byte("token"),
 			sender,
 			contract,

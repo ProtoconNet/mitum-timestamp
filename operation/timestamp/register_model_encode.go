@@ -6,7 +6,7 @@ import (
 	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
-func (fact *CreateServiceFact) unpack(
+func (fact *RegisterModelFact) unpack(
 	enc encoder.Encoder,
 	sa, ta, cid string,
 ) error {

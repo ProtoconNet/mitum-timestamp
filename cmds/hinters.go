@@ -17,19 +17,19 @@ var AddedHinters = []encoder.DecodeDetail{
 	// revive:disable-next-line:line-length-limit
 
 	{Hint: types.DesignHint, Instance: types.Design{}},
-	{Hint: types.TimeStampItemHint, Instance: types.TimeStampItem{}},
+	{Hint: types.ItemHint, Instance: types.Item{}},
 
-	{Hint: timestamp.AppendHint, Instance: timestamp.Append{}},
-	{Hint: timestamp.CreateServiceHint, Instance: timestamp.CreateService{}},
+	{Hint: timestamp.IssueHint, Instance: timestamp.Issue{}},
+	{Hint: timestamp.RegisterModelHint, Instance: timestamp.RegisterModel{}},
 
-	{Hint: state.TimeStampItemStateValueHint, Instance: state.TimeStampItemStateValue{}},
-	{Hint: state.ServiceDesignStateValueHint, Instance: state.ServiceDesignStateValue{}},
-	{Hint: state.TimeStampLastIndexStateValueHint, Instance: state.TimeStampLastIndexStateValue{}},
+	{Hint: state.ItemStateValueHint, Instance: state.ItemStateValue{}},
+	{Hint: state.DesignStateValueHint, Instance: state.DesignStateValue{}},
+	{Hint: state.LastIdxStateValueHint, Instance: state.LastIdxStateValue{}},
 }
 
 var AddedSupportedHinters = []encoder.DecodeDetail{
-	{Hint: timestamp.AppendFactHint, Instance: timestamp.AppendFact{}},
-	{Hint: timestamp.CreateServiceFactHint, Instance: timestamp.CreateServiceFact{}},
+	{Hint: timestamp.IssueFactHint, Instance: timestamp.IssueFact{}},
+	{Hint: timestamp.RegisterModelFactHint, Instance: timestamp.RegisterModelFact{}},
 }
 
 func init() {

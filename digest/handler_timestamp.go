@@ -13,9 +13,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (hd *Handlers) handleTimeStamp(w http.ResponseWriter, r *http.Request) {
-	cachekey := currencydigest.CacheKeyPath(r)
-	if err := currencydigest.LoadFromCache(hd.cache, cachekey, w); err == nil {
+func (hd *Handlers) handleTimeStampDesign(w http.ResponseWriter, r *http.Request) {
+	cacheKey := currencydigest.CacheKeyPath(r)
+	if err := currencydigest.LoadFromCache(hd.cache, cacheKey, w); err == nil {
 		return
 	}
 
@@ -35,37 +35,37 @@ func (hd *Handlers) handleTimeStamp(w http.ResponseWriter, r *http.Request) {
 	}
 	contract = s
 
-	if v, err, shared := hd.rg.Do(cachekey, func() (interface{}, error) {
-		return hd.handleTimeStampInGroup(contract)
+	if v, err, shared := hd.rg.Do(cacheKey, func() (interface{}, error) {
+		return hd.handleTimeStampDesignInGroup(contract)
 	}); err != nil {
 		currencydigest.HTTP2HandleError(w, err)
 	} else {
 		currencydigest.HTTP2WriteHalBytes(hd.enc, w, v.([]byte), http.StatusOK)
 
 		if !shared {
-			currencydigest.HTTP2WriteCache(w, cachekey, time.Second*3)
+			currencydigest.HTTP2WriteCache(w, cacheKey, time.Second*3)
 		}
 	}
 }
 
-func (hd *Handlers) handleTimeStampInGroup(contract string) ([]byte, error) {
+func (hd *Handlers) handleTimeStampDesignInGroup(contract string) ([]byte, error) {
 	var de types.Design
 	var st base.State
 
-	de, st, err := Timestamp(hd.database, contract)
+	de, st, err := TimestampDesign(hd.database, contract)
 	if err != nil {
 		return nil, err
 	}
 
-	i, err := hd.buildTimeStamp(contract, de, st)
+	i, err := hd.buildTimeStampDesign(contract, de, st)
 	if err != nil {
 		return nil, err
 	}
 	return hd.enc.Marshal(i)
 }
 
-func (hd *Handlers) buildTimeStamp(contract string, de types.Design, st base.State) (currencydigest.Hal, error) {
-	h, err := hd.combineURL(HandlerPathTimeStampService, "contract", contract)
+func (hd *Handlers) buildTimeStampDesign(contract string, de types.Design, st base.State) (currencydigest.Hal, error) {
+	h, err := hd.combineURL(HandlerPathTimeStampDesign, "contract", contract)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func (hd *Handlers) handleTimeStampItem(w http.ResponseWriter, r *http.Request) 
 }
 
 func (hd *Handlers) handleTimeStampItemInGroup(contract, project string, idx uint64) ([]byte, error) {
-	var it types.TimeStampItem
+	var it types.Item
 	var st base.State
 
 	it, st, err := TimestampItem(hd.database, contract, project, idx)
@@ -165,8 +165,11 @@ func (hd *Handlers) handleTimeStampItemInGroup(contract, project string, idx uin
 	return hd.enc.Marshal(i)
 }
 
-func (hd *Handlers) buildTimeStampItem(contract string, it types.TimeStampItem, st base.State) (currencydigest.Hal, error) {
-	h, err := hd.combineURL(HandlerPathTimeStampItem, "contract", contract, "project", it.ProjectID(), "tid", strconv.FormatUint(it.TimestampID(), 10))
+func (hd *Handlers) buildTimeStampItem(contract string, it types.Item, st base.State) (currencydigest.Hal, error) {
+	h, err := hd.combineURL(
+		HandlerPathTimeStampItem,
+		"contract", contract, "project_id", it.ProjectID(), "timestamp_idx",
+		strconv.FormatUint(it.TimestampID(), 10))
 	if err != nil {
 		return nil, err
 	}

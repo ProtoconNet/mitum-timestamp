@@ -9,7 +9,7 @@ import (
 	"github.com/ProtoconNet/mitum2/util/valuehash"
 )
 
-func (fact AppendFact) MarshalBSON() ([]byte, error) {
+func (fact IssueFact) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
 			"_hint":             fact.Hint().String(),
@@ -17,7 +17,7 @@ func (fact AppendFact) MarshalBSON() ([]byte, error) {
 			"token":             fact.BaseFact.Token(),
 			"sender":            fact.sender,
 			"contract":          fact.contract,
-			"projectid":         fact.projectID,
+			"project_id":        fact.projectID,
 			"request_timestamp": fact.requestTimeStamp,
 			"data":              fact.data,
 			"currency":          fact.currency,
@@ -29,13 +29,13 @@ type AppendFactBSONUnmarshaler struct {
 	Hint             string `bson:"_hint"`
 	Sender           string `bson:"sender"`
 	Contract         string `bson:"contract"`
-	ProjectID        string `bson:"projectid"`
+	ProjectID        string `bson:"project_id"`
 	RequestTimeStamp uint64 `bson:"request_timestamp"`
 	Data             string `bson:"data"`
 	Currency         string `bson:"currency"`
 }
 
-func (fact *AppendFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
+func (fact *IssueFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 	var u common.BaseFactBSONUnmarshaler
 
 	err := enc.Unmarshal(b, &u)
@@ -64,7 +64,7 @@ func (fact *AppendFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 	return nil
 }
 
-func (op Append) MarshalBSON() ([]byte, error) {
+func (op Issue) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
 			"_hint": op.Hint().String(),
@@ -74,7 +74,7 @@ func (op Append) MarshalBSON() ([]byte, error) {
 		})
 }
 
-func (op *Append) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
+func (op *Issue) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 	var ubo common.BaseOperation
 	if err := ubo.DecodeBSON(b, enc); err != nil {
 		return common.DecorateError(err, common.ErrDecodeBson, *op)

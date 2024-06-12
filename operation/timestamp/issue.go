@@ -12,11 +12,11 @@ import (
 )
 
 var (
-	AppendFactHint = hint.MustNewHint("mitum-timestamp-append-operation-fact-v0.0.1")
-	AppendHint     = hint.MustNewHint("mitum-timestamp-append-operation-v0.0.1")
+	IssueFactHint = hint.MustNewHint("mitum-timestamp-issue-operation-fact-v0.0.1")
+	IssueHint     = hint.MustNewHint("mitum-timestamp-issue-operation-v0.0.1")
 )
 
-type AppendFact struct {
+type IssueFact struct {
 	mitumbase.BaseFact
 	sender           mitumbase.Address
 	contract         mitumbase.Address
@@ -26,11 +26,11 @@ type AppendFact struct {
 	currency         currencytypes.CurrencyID
 }
 
-func NewAppendFact(
+func NewIssueFact(
 	token []byte, sender, contract mitumbase.Address, projectID string,
-	requestTimeStamp uint64, data string, currency currencytypes.CurrencyID) AppendFact {
-	bf := mitumbase.NewBaseFact(AppendFactHint, token)
-	fact := AppendFact{
+	requestTimeStamp uint64, data string, currency currencytypes.CurrencyID) IssueFact {
+	bf := mitumbase.NewBaseFact(IssueFactHint, token)
+	fact := IssueFact{
 		BaseFact:         bf,
 		sender:           sender,
 		contract:         contract,
@@ -44,7 +44,7 @@ func NewAppendFact(
 	return fact
 }
 
-func (fact AppendFact) IsValid(b []byte) error {
+func (fact IssueFact) IsValid(b []byte) error {
 	if len(fact.projectID) < 1 || len(fact.projectID) > types.MaxProjectIDLen {
 		return common.ErrFactInvalid.Wrap(
 			common.ErrValOOR.Wrap(
@@ -85,15 +85,15 @@ func (fact AppendFact) IsValid(b []byte) error {
 	return nil
 }
 
-func (fact AppendFact) Hash() util.Hash {
+func (fact IssueFact) Hash() util.Hash {
 	return fact.BaseFact.Hash()
 }
 
-func (fact AppendFact) GenerateHash() util.Hash {
+func (fact IssueFact) GenerateHash() util.Hash {
 	return valuehash.NewSHA256(fact.Bytes())
 }
 
-func (fact AppendFact) Bytes() []byte {
+func (fact IssueFact) Bytes() []byte {
 	return util.ConcatBytesSlice(
 		fact.Token(),
 		fact.sender.Bytes(),
@@ -105,38 +105,38 @@ func (fact AppendFact) Bytes() []byte {
 	)
 }
 
-func (fact AppendFact) Token() mitumbase.Token {
+func (fact IssueFact) Token() mitumbase.Token {
 	return fact.BaseFact.Token()
 }
 
-func (fact AppendFact) Sender() mitumbase.Address {
+func (fact IssueFact) Sender() mitumbase.Address {
 	return fact.sender
 }
 
-func (fact AppendFact) Contract() mitumbase.Address {
+func (fact IssueFact) Contract() mitumbase.Address {
 	return fact.contract
 }
 
-func (fact AppendFact) ProjectId() string {
+func (fact IssueFact) ProjectId() string {
 	return fact.projectID
 }
 
-func (fact AppendFact) RequestTimeStamp() uint64 {
+func (fact IssueFact) RequestTimeStamp() uint64 {
 	return fact.requestTimeStamp
 }
 
-func (fact AppendFact) Data() string {
+func (fact IssueFact) Data() string {
 	return fact.data
 }
 
-func (fact AppendFact) Currency() currencytypes.CurrencyID {
+func (fact IssueFact) Currency() currencytypes.CurrencyID {
 	return fact.currency
 }
 
-type Append struct {
+type Issue struct {
 	common.BaseOperation
 }
 
-func NewAppend(fact AppendFact) (Append, error) {
-	return Append{BaseOperation: common.NewBaseOperation(AppendHint, fact)}, nil
+func NewIssue(fact IssueFact) (Issue, error) {
+	return Issue{BaseOperation: common.NewBaseOperation(IssueHint, fact)}, nil
 }

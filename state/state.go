@@ -2,8 +2,7 @@ package state
 
 import (
 	"fmt"
-	statecurrency "github.com/ProtoconNet/mitum-currency/v3/state/currency"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-currency/v3/common"
 	"github.com/ProtoconNet/mitum-timestamp/types"
 	"strconv"
 	"strings"
@@ -15,270 +14,192 @@ import (
 )
 
 var (
-	StateKeyTimeStampPrefix     = "timestamp"
-	ServiceDesignStateValueHint = hint.MustNewHint("mitum-timestamp-service-design-state-value-v0.0.1")
-	StateKeyServiceDesignSuffix = "service"
+	DesignStateValueHint    = hint.MustNewHint("mitum-timestamp-design-state-value-v0.0.1")
+	TimeStampStateKeyPrefix = "timestamp"
+	DesignStateKeySuffix    = "design"
 )
 
-func StateKeyTimeStampService(addr mitumbase.Address) string {
-	return fmt.Sprintf("%s:%s", StateKeyTimeStampPrefix, addr.String())
+func TimeStampStateKey(addr mitumbase.Address) string {
+	return fmt.Sprintf("%s:%s", TimeStampStateKeyPrefix, addr.String())
 }
 
-type ServiceDesignStateValue struct {
+type DesignStateValue struct {
 	hint.BaseHinter
 	Design types.Design
 }
 
-func NewServiceDesignStateValue(design types.Design) ServiceDesignStateValue {
-	return ServiceDesignStateValue{
-		BaseHinter: hint.NewBaseHinter(ServiceDesignStateValueHint),
+func NewDesignStateValue(design types.Design) DesignStateValue {
+	return DesignStateValue{
+		BaseHinter: hint.NewBaseHinter(DesignStateValueHint),
 		Design:     design,
 	}
 }
 
-func (sd ServiceDesignStateValue) Hint() hint.Hint {
-	return sd.BaseHinter.Hint()
+func (sv DesignStateValue) Hint() hint.Hint {
+	return sv.BaseHinter.Hint()
 }
 
-func (sd ServiceDesignStateValue) IsValid([]byte) error {
-	e := util.ErrInvalid.Errorf("invalid ServiceDesignStateValue")
+func (sv DesignStateValue) IsValid([]byte) error {
+	e := util.ErrInvalid.Errorf("invalid DesignStateValue")
 
-	if err := sd.BaseHinter.IsValid(ServiceDesignStateValueHint.Type().Bytes()); err != nil {
+	if err := sv.BaseHinter.IsValid(DesignStateValueHint.Type().Bytes()); err != nil {
 		return e.Wrap(err)
 	}
 
-	if err := sd.Design.IsValid(nil); err != nil {
+	if err := sv.Design.IsValid(nil); err != nil {
 		return e.Wrap(err)
 	}
 
 	return nil
 }
 
-func (sd ServiceDesignStateValue) HashBytes() []byte {
-	return sd.Design.Bytes()
+func (sv DesignStateValue) HashBytes() []byte {
+	return sv.Design.Bytes()
 }
 
-func StateServiceDesignValue(st mitumbase.State) (types.Design, error) {
+func GetDesignFromState(st mitumbase.State) (types.Design, error) {
 	v := st.Value()
 	if v == nil {
-		return types.Design{}, util.ErrNotFound.Errorf("service design not found in State")
+		return types.Design{}, errors.Errorf("state value is nil")
 	}
 
-	d, ok := v.(ServiceDesignStateValue)
+	d, ok := v.(DesignStateValue)
 	if !ok {
-		return types.Design{}, errors.Errorf("invalid service design value found, %T", v)
+		return types.Design{}, errors.Errorf("expected DesignStateValue but %T", v)
 	}
 
 	return d.Design, nil
 }
 
-func IsStateServiceDesignKey(key string) bool {
-	return strings.HasSuffix(key, StateKeyServiceDesignSuffix)
+func IsDesignStateKey(key string) bool {
+	return strings.HasSuffix(key, DesignStateKeySuffix)
 }
 
-func StateKeyServiceDesign(addr mitumbase.Address) string {
-	return fmt.Sprintf("%s:%s", StateKeyTimeStampService(addr), StateKeyServiceDesignSuffix)
+func DesignStateKey(addr mitumbase.Address) string {
+	return fmt.Sprintf("%s:%s", TimeStampStateKey(addr), DesignStateKeySuffix)
 }
 
 var (
-	TimeStampLastIndexStateValueHint = hint.MustNewHint("mitum-timestamp-last-index-state-value-v0.0.1")
-	StateKeyProjectLastIndexSuffix   = "timestampidx"
+	LastIdxStateValueHint = hint.MustNewHint("mitum-timestamp-last-idx-state-value-v0.0.1")
+	LastIdxStateKeySuffix = "timestampIdx"
 )
 
-type TimeStampLastIndexStateValue struct {
+type LastIdxStateValue struct {
 	hint.BaseHinter
 	ProjectID string
 	Index     uint64
 }
 
-func NewTimeStampLastIndexStateValue(pid string, index uint64) TimeStampLastIndexStateValue {
-	return TimeStampLastIndexStateValue{
-		BaseHinter: hint.NewBaseHinter(TimeStampLastIndexStateValueHint),
+func NewLastIdxStateValue(pid string, idx uint64) LastIdxStateValue {
+	return LastIdxStateValue{
+		BaseHinter: hint.NewBaseHinter(LastIdxStateValueHint),
 		ProjectID:  pid,
-		Index:      index,
+		Index:      idx,
 	}
 }
 
-func (ti TimeStampLastIndexStateValue) Hint() hint.Hint {
-	return ti.BaseHinter.Hint()
+func (sv LastIdxStateValue) Hint() hint.Hint {
+	return sv.BaseHinter.Hint()
 }
 
-func (ti TimeStampLastIndexStateValue) IsValid([]byte) error {
-	e := util.ErrInvalid.Errorf("invalid TimeStampLastIndexStateValue")
+func (sv LastIdxStateValue) IsValid([]byte) error {
+	e := util.ErrInvalid.Errorf("invalid TimeStampLastIdxStateValue")
 
-	if err := ti.BaseHinter.IsValid(TimeStampLastIndexStateValueHint.Type().Bytes()); err != nil {
+	if err := sv.BaseHinter.IsValid(LastIdxStateValueHint.Type().Bytes()); err != nil {
 		return e.Wrap(err)
 	}
 
-	if len(ti.ProjectID) < 1 || len(ti.ProjectID) > types.MaxProjectIDLen {
-		return errors.Errorf("invalid projectID length %v < 1 or > %v", len(ti.ProjectID), types.MaxProjectIDLen)
+	if len(sv.ProjectID) < 1 || len(sv.ProjectID) > types.MaxProjectIDLen {
+		return common.ErrValOOR.Wrap(
+			errors.Errorf("invalid projectID length %v < 1 or > %v", len(sv.ProjectID), types.MaxProjectIDLen))
 	}
 
 	return nil
 }
 
-func (ti TimeStampLastIndexStateValue) HashBytes() []byte {
-	return util.ConcatBytesSlice([]byte(ti.ProjectID), util.Uint64ToBytes(ti.Index))
+func (sv LastIdxStateValue) HashBytes() []byte {
+	return util.ConcatBytesSlice([]byte(sv.ProjectID), util.Uint64ToBytes(sv.Index))
 }
 
-func StateTimeStampLastIndexValue(st mitumbase.State) (uint64, error) {
+func GetLastIdxFromState(st mitumbase.State) (uint64, error) {
 	v := st.Value()
 	if v == nil {
-		return 0, util.ErrNotFound.Errorf("collection last nft index not found in State")
+		return 0, errors.Errorf("state value is nil")
 	}
 
-	isv, ok := v.(TimeStampLastIndexStateValue)
+	isv, ok := v.(LastIdxStateValue)
 	if !ok {
-		return 0, errors.Errorf("invalid collection last nft index value found, %T", v)
+		return 0, errors.Errorf("expected LastIdxStateValue but, %T", v)
 	}
 
 	return isv.Index, nil
 }
 
-func IsStateTimeStampLastIndexKey(key string) bool {
-	return strings.HasSuffix(key, StateKeyProjectLastIndexSuffix)
+func IsLastIdxStateKey(key string) bool {
+	return strings.HasSuffix(key, LastIdxStateKeySuffix)
 }
 
-func StateKeyTimeStampLastIndex(addr mitumbase.Address, pid string) string {
-	return fmt.Sprintf("%s:%s:%s", StateKeyTimeStampService(addr), pid, StateKeyProjectLastIndexSuffix)
+func LastIdxStateKey(addr mitumbase.Address, pid string) string {
+	return fmt.Sprintf("%s:%s:%s", TimeStampStateKey(addr), pid, LastIdxStateKeySuffix)
 }
 
 var (
-	TimeStampItemStateValueHint = hint.MustNewHint("mitum-timestamp-item-state-value-v0.0.1")
-	StateKeyTimeStampItemSuffix = "timestampitem"
+	ItemStateValueHint = hint.MustNewHint("mitum-timestamp-item-state-value-v0.0.1")
+	ItemStateKeySuffix = "item"
 )
 
-type TimeStampItemStateValue struct {
+type ItemStateValue struct {
 	hint.BaseHinter
-	TimeStampItem types.TimeStampItem
+	Item types.Item
 }
 
-func NewTimeStampItemStateValue(item types.TimeStampItem) TimeStampItemStateValue {
-	return TimeStampItemStateValue{
-		BaseHinter:    hint.NewBaseHinter(TimeStampItemStateValueHint),
-		TimeStampItem: item,
+func NewItemStateValue(item types.Item) ItemStateValue {
+	return ItemStateValue{
+		BaseHinter: hint.NewBaseHinter(ItemStateValueHint),
+		Item:       item,
 	}
 }
 
-func (ts TimeStampItemStateValue) Hint() hint.Hint {
-	return ts.BaseHinter.Hint()
+func (sv ItemStateValue) Hint() hint.Hint {
+	return sv.BaseHinter.Hint()
 }
 
-func (ts TimeStampItemStateValue) IsValid([]byte) error {
-	e := util.ErrInvalid.Errorf("invalid TimeStampItemStateValue")
+func (sv ItemStateValue) IsValid([]byte) error {
+	e := util.ErrInvalid.Errorf("invalid ItemStateValue")
 
-	if err := ts.BaseHinter.IsValid(TimeStampItemStateValueHint.Type().Bytes()); err != nil {
+	if err := sv.BaseHinter.IsValid(ItemStateValueHint.Type().Bytes()); err != nil {
 		return e.Wrap(err)
 	}
 
-	if err := ts.TimeStampItem.IsValid(nil); err != nil {
+	if err := sv.Item.IsValid(nil); err != nil {
 		return e.Wrap(err)
 	}
 
 	return nil
 }
 
-func (ts TimeStampItemStateValue) HashBytes() []byte {
-	return ts.TimeStampItem.Bytes()
+func (sv ItemStateValue) HashBytes() []byte {
+	return sv.Item.Bytes()
 }
 
-func StateTimeStampItemValue(st mitumbase.State) (types.TimeStampItem, error) {
+func GetItemFromState(st mitumbase.State) (types.Item, error) {
 	v := st.Value()
 	if v == nil {
-		return types.TimeStampItem{}, util.ErrNotFound.Errorf("TimeStampItem not found in State")
+		return types.Item{}, errors.Errorf("State value is nil")
 	}
 
-	ts, ok := v.(TimeStampItemStateValue)
+	ts, ok := v.(ItemStateValue)
 	if !ok {
-		return types.TimeStampItem{}, errors.Errorf("invalid TimeStampItem value found, %T", v)
+		return types.Item{}, common.ErrTypeMismatch.Wrap(errors.Errorf("expected ItemStateValue found, %T", v))
 	}
 
-	return ts.TimeStampItem, nil
+	return ts.Item, nil
 }
 
-func IsStateTimeStampItemKey(key string) bool {
-	return strings.HasSuffix(key, StateKeyTimeStampItemSuffix)
+func IsItemStateKey(key string) bool {
+	return strings.HasSuffix(key, ItemStateKeySuffix)
 }
 
-func StateKeyTimeStampItem(addr mitumbase.Address, pid string, index uint64) string {
-	return fmt.Sprintf("%s:%s:%s:%s", StateKeyTimeStampService(addr), pid, strconv.FormatUint(index, 10), StateKeyTimeStampItemSuffix)
-}
-
-func checkExistsState(
-	key string,
-	getState mitumbase.GetStateFunc,
-) error {
-	switch _, found, err := getState(key); {
-	case err != nil:
-		return err
-	case !found:
-		return mitumbase.NewBaseOperationProcessReasonError("state, %q does not exist", key)
-	default:
-		return nil
-	}
-}
-
-func checkNotExistsState(
-	key string,
-	getState mitumbase.GetStateFunc,
-) error {
-	switch _, found, err := getState(key); {
-	case err != nil:
-		return err
-	case found:
-		return mitumbase.NewBaseOperationProcessReasonError("state, %q already exists", key)
-	default:
-		return nil
-	}
-}
-
-func existsState(
-	k,
-	name string,
-	getState mitumbase.GetStateFunc,
-) (mitumbase.State, error) {
-	switch st, found, err := getState(k); {
-	case err != nil:
-		return nil, err
-	case !found:
-		return nil, mitumbase.NewBaseOperationProcessReasonError("%s does not exist", name)
-	default:
-		return st, nil
-	}
-}
-
-func notExistsState(
-	k,
-	name string,
-	getState mitumbase.GetStateFunc,
-) (mitumbase.State, error) {
-	var st mitumbase.State
-	switch _, found, err := getState(k); {
-	case err != nil:
-		return nil, err
-	case found:
-		return nil, mitumbase.NewBaseOperationProcessReasonError("%s already exists", name)
-	case !found:
-		st = mitumbase.NewBaseState(mitumbase.NilHeight, k, nil, nil, nil)
-	}
-	return st, nil
-}
-
-func existsCurrencyPolicy(cid currencytypes.CurrencyID, getStateFunc mitumbase.GetStateFunc) (currencytypes.CurrencyPolicy, error) {
-	var policy currencytypes.CurrencyPolicy
-
-	switch st, found, err := getStateFunc(statecurrency.StateKeyCurrencyDesign(cid)); {
-	case err != nil:
-		return currencytypes.CurrencyPolicy{}, err
-	case !found:
-		return currencytypes.CurrencyPolicy{}, errors.Errorf("currency not found, %v", cid)
-	default:
-		design, ok := st.Value().(statecurrency.CurrencyDesignStateValue) //nolint:forcetypeassert //...
-		if !ok {
-			return currencytypes.CurrencyPolicy{}, errors.Errorf("expected CurrencyDesignStateValue, not %T", st.Value())
-		}
-		policy = design.CurrencyDesign.Policy()
-	}
-
-	return policy, nil
+func ItemStateKey(addr mitumbase.Address, pid string, index uint64) string {
+	return fmt.Sprintf("%s:%s:%s:%s", TimeStampStateKey(addr), pid, strconv.FormatUint(index, 10), ItemStateKeySuffix)
 }

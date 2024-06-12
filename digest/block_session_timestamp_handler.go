@@ -1,7 +1,7 @@
 package digest
 
 import (
-	timestampservice "github.com/ProtoconNet/mitum-timestamp/state"
+	"github.com/ProtoconNet/mitum-timestamp/state"
 	mitumbase "github.com/ProtoconNet/mitum2/base"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -15,13 +15,13 @@ func (bs *BlockSession) prepareTimeStamps() error {
 	for i := range bs.sts {
 		st := bs.sts[i]
 		switch {
-		case timestampservice.IsStateServiceDesignKey(st.Key()):
-			j, err := bs.handleTimeStampServiceDesignState(st)
+		case state.IsDesignStateKey(st.Key()):
+			j, err := bs.handleTimeStampDesignState(st)
 			if err != nil {
 				return err
 			}
 			timestampModels = append(timestampModels, j...)
-		case timestampservice.IsStateTimeStampItemKey(st.Key()):
+		case state.IsItemStateKey(st.Key()):
 			j, err := bs.handleTimeStampItemState(st)
 			if err != nil {
 				return err
@@ -37,8 +37,8 @@ func (bs *BlockSession) prepareTimeStamps() error {
 	return nil
 }
 
-func (bs *BlockSession) handleTimeStampServiceDesignState(st mitumbase.State) ([]mongo.WriteModel, error) {
-	if serviceDesignDoc, err := NewTimeStampServiceDesignDoc(st, bs.st.DatabaseEncoder()); err != nil {
+func (bs *BlockSession) handleTimeStampDesignState(st mitumbase.State) ([]mongo.WriteModel, error) {
+	if serviceDesignDoc, err := NewDesignDoc(st, bs.st.Encoder()); err != nil {
 		return nil, err
 	} else {
 		return []mongo.WriteModel{
@@ -48,7 +48,7 @@ func (bs *BlockSession) handleTimeStampServiceDesignState(st mitumbase.State) ([
 }
 
 func (bs *BlockSession) handleTimeStampItemState(st mitumbase.State) ([]mongo.WriteModel, error) {
-	if TimeStampItemDoc, err := NewTimeStampItemDoc(st, bs.st.DatabaseEncoder()); err != nil {
+	if TimeStampItemDoc, err := NewItemDoc(st, bs.st.Encoder()); err != nil {
 		return nil, err
 	} else {
 		return []mongo.WriteModel{

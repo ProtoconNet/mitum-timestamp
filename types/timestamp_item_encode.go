@@ -4,7 +4,7 @@ import (
 	"github.com/ProtoconNet/mitum2/util/hint"
 )
 
-func (t *TimeStampItem) unmarshal(
+func (t *Item) unmarshal(
 	ht hint.Hint,
 	pid string,
 	rqts,
@@ -16,7 +16,7 @@ func (t *TimeStampItem) unmarshal(
 	t.projectID = pid
 	t.requestTimeStamp = rqts
 	t.responseTimeStamp = rsts
-	t.timestampID = tsid
+	t.timestampIdx = tsid
 	t.data = data
 
 	return nil

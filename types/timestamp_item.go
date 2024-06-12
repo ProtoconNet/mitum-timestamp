@@ -12,35 +12,35 @@ var (
 	MaxDataLen      = 1024
 )
 
-var TimeStampItemHint = hint.MustNewHint("mitum-timestamp-item-v0.0.1")
+var ItemHint = hint.MustNewHint("mitum-timestamp-item-v0.0.1")
 
-type TimeStampItem struct {
+type Item struct {
 	hint.BaseHinter
 	projectID         string
 	requestTimeStamp  uint64
 	responseTimeStamp uint64
-	timestampID       uint64
+	timestampIdx      uint64
 	data              string
 }
 
-func NewTimeStampItem(
+func NewItem(
 	pid string,
 	reqTS,
 	resTS,
-	tID uint64,
+	tidx uint64,
 	data string,
-) TimeStampItem {
-	return TimeStampItem{
-		BaseHinter:        hint.NewBaseHinter(TimeStampItemHint),
+) Item {
+	return Item{
+		BaseHinter:        hint.NewBaseHinter(ItemHint),
 		projectID:         pid,
 		requestTimeStamp:  reqTS,
 		responseTimeStamp: resTS,
-		timestampID:       tID,
+		timestampIdx:      tidx,
 		data:              data,
 	}
 }
 
-func (t TimeStampItem) IsValid([]byte) error {
+func (t Item) IsValid([]byte) error {
 	if len(t.projectID) < 1 || len(t.projectID) > MaxProjectIDLen {
 		return errors.Errorf("invalid projectID length %v < 1 or > %v", len(t.projectID), MaxProjectIDLen)
 	}
@@ -56,37 +56,37 @@ func (t TimeStampItem) IsValid([]byte) error {
 	return nil
 }
 
-func (t TimeStampItem) Bytes() []byte {
+func (t Item) Bytes() []byte {
 	return util.ConcatBytesSlice(
 		[]byte(t.projectID),
 		util.Uint64ToBytes(t.requestTimeStamp),
 		util.Uint64ToBytes(t.responseTimeStamp),
-		util.Uint64ToBytes(t.timestampID),
+		util.Uint64ToBytes(t.timestampIdx),
 		[]byte(t.data),
 	)
 }
 
-func (t TimeStampItem) ProjectID() string {
+func (t Item) ProjectID() string {
 	return t.projectID
 }
 
-func (t TimeStampItem) RequestTimeStamp() uint64 {
+func (t Item) RequestTimeStamp() uint64 {
 	return t.requestTimeStamp
 }
 
-func (t TimeStampItem) ResponseTimeStamp() uint64 {
+func (t Item) ResponseTimeStamp() uint64 {
 	return t.responseTimeStamp
 }
 
-func (t TimeStampItem) TimestampID() uint64 {
-	return t.timestampID
+func (t Item) TimestampID() uint64 {
+	return t.timestampIdx
 }
 
-func (t TimeStampItem) Data() string {
+func (t Item) Data() string {
 	return t.data
 }
 
-func (t TimeStampItem) Equal(ct TimeStampItem) bool {
+func (t Item) Equal(ct Item) bool {
 	if t.projectID != ct.projectID {
 		return false
 	}
@@ -99,7 +99,7 @@ func (t TimeStampItem) Equal(ct TimeStampItem) bool {
 		return false
 	}
 
-	if t.timestampID != ct.timestampID {
+	if t.timestampIdx != ct.timestampIdx {
 		return false
 	}
 

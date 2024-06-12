@@ -8,24 +8,24 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (s ServiceDesignStateValue) MarshalBSON() ([]byte, error) {
+func (sv DesignStateValue) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
-			"_hint":  s.Hint().String(),
-			"design": s.Design,
+			"_hint":  sv.Hint().String(),
+			"design": sv.Design,
 		},
 	)
 }
 
-type ServiceDesignStateValueBSONUnmarshaler struct {
+type DesignStateValueBSONUnmarshaler struct {
 	Hint   string   `bson:"_hint"`
 	Design bson.Raw `bson:"design"`
 }
 
-func (s *ServiceDesignStateValue) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
-	e := util.StringError("failed to decode bson of ServiceDesignStateValue")
+func (sv *DesignStateValue) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
+	e := util.StringError("decode bson of DesignStateValue")
 
-	var u ServiceDesignStateValueBSONUnmarshaler
+	var u DesignStateValueBSONUnmarshaler
 	if err := enc.Unmarshal(b, &u); err != nil {
 		return e.Wrap(err)
 	}
@@ -34,37 +34,37 @@ func (s *ServiceDesignStateValue) DecodeBSON(b []byte, enc *bsonenc.Encoder) err
 	if err != nil {
 		return e.Wrap(err)
 	}
-	s.BaseHinter = hint.NewBaseHinter(ht)
+	sv.BaseHinter = hint.NewBaseHinter(ht)
 
 	var sd types.Design
 	if err := sd.DecodeBSON(u.Design, enc); err != nil {
 		return e.Wrap(err)
 	}
-	s.Design = sd
+	sv.Design = sd
 
 	return nil
 }
 
-func (s TimeStampLastIndexStateValue) MarshalBSON() ([]byte, error) {
+func (sv LastIdxStateValue) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
-			"_hint":     s.Hint().String(),
-			"projectid": s.ProjectID,
-			"index":     s.Index,
+			"_hint":      sv.Hint().String(),
+			"project_id": sv.ProjectID,
+			"last_idx":   sv.Index,
 		},
 	)
 }
 
-type TimeStampLastIndexStateValueBSONUnmarshaler struct {
+type LastIdxStateValueBSONUnmarshaler struct {
 	Hint      string `bson:"_hint"`
-	ProjectID string `bson:"projectid"`
-	Index     uint64 `bson:"index"`
+	ProjectID string `bson:"project_id"`
+	Index     uint64 `bson:"last_idx"`
 }
 
-func (s *TimeStampLastIndexStateValue) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
-	e := util.StringError("failed to decode bson of TimeStampLastIndexStateValue")
+func (sv *LastIdxStateValue) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
+	e := util.StringError("decode bson of LastIdxStateValue")
 
-	var u TimeStampLastIndexStateValueBSONUnmarshaler
+	var u LastIdxStateValueBSONUnmarshaler
 	if err := enc.Unmarshal(b, &u); err != nil {
 		return e.Wrap(err)
 	}
@@ -73,32 +73,32 @@ func (s *TimeStampLastIndexStateValue) DecodeBSON(b []byte, enc *bsonenc.Encoder
 	if err != nil {
 		return e.Wrap(err)
 	}
-	s.BaseHinter = hint.NewBaseHinter(ht)
+	sv.BaseHinter = hint.NewBaseHinter(ht)
 
-	s.ProjectID = u.ProjectID
-	s.Index = u.Index
+	sv.ProjectID = u.ProjectID
+	sv.Index = u.Index
 
 	return nil
 }
 
-func (s TimeStampItemStateValue) MarshalBSON() ([]byte, error) {
+func (sv ItemStateValue) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
-			"_hint":         s.Hint().String(),
-			"timestampitem": s.TimeStampItem,
+			"_hint":          sv.Hint().String(),
+			"timestamp_item": sv.Item,
 		},
 	)
 }
 
-type TimeStampStateValueBSONUnmarshaler struct {
+type ItemStateValueBSONUnmarshaler struct {
 	Hint          string   `bson:"_hint"`
-	TimeStampItem bson.Raw `bson:"timestampitem"`
+	TimeStampItem bson.Raw `bson:"timestamp_item"`
 }
 
-func (s *TimeStampItemStateValue) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
-	e := util.StringError("failed to decode bson of TimeStampItemStateValue")
+func (sv *ItemStateValue) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
+	e := util.StringError("decode bson of ItemStateValue")
 
-	var u TimeStampStateValueBSONUnmarshaler
+	var u ItemStateValueBSONUnmarshaler
 	if err := enc.Unmarshal(b, &u); err != nil {
 		return e.Wrap(err)
 	}
@@ -107,13 +107,13 @@ func (s *TimeStampItemStateValue) DecodeBSON(b []byte, enc *bsonenc.Encoder) err
 	if err != nil {
 		return e.Wrap(err)
 	}
-	s.BaseHinter = hint.NewBaseHinter(ht)
+	sv.BaseHinter = hint.NewBaseHinter(ht)
 
-	var n types.TimeStampItem
+	var n types.Item
 	if err := n.DecodeBSON(u.TimeStampItem, enc); err != nil {
 		return e.Wrap(err)
 	}
-	s.TimeStampItem = n
+	sv.Item = n
 
 	return nil
 }

@@ -8,28 +8,28 @@ import (
 	"github.com/ProtoconNet/mitum2/util/hint"
 )
 
-func (t TimeStampItem) MarshalBSON() ([]byte, error) {
+func (t Item) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(bson.M{
 		"_hint":              t.Hint().String(),
-		"projectid":          t.projectID,
+		"project_id":         t.projectID,
 		"request_timestamp":  t.requestTimeStamp,
 		"response_timestamp": t.responseTimeStamp,
-		"timestampid":        t.timestampID,
+		"timestamp_idx":      t.timestampIdx,
 		"data":               t.data,
 	})
 }
 
 type TimeStampItemBSONUnmarshaler struct {
 	Hint              string `bson:"_hint"`
-	ProjectID         string `bson:"projectid"`
+	ProjectID         string `bson:"project_id"`
 	RequestTimeStamp  uint64 `bson:"request_timestamp"`
 	ResponseTimeStamp uint64 `bson:"response_timestamp"`
-	TimeStampID       uint64 `bson:"timestampid"`
+	TimeStampIdx      uint64 `bson:"timestamp_idx"`
 	Data              string `bson:"data"`
 }
 
-func (t *TimeStampItem) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
-	e := util.StringError("failed to decode bson of TimeStampItem")
+func (t *Item) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
+	e := util.StringError("decode bson of TimeStampItem")
 
 	var u TimeStampItemBSONUnmarshaler
 	if err := enc.Unmarshal(b, &u); err != nil {
@@ -41,5 +41,5 @@ func (t *TimeStampItem) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 		return e.Wrap(err)
 	}
 
-	return t.unmarshal(ht, u.ProjectID, u.RequestTimeStamp, u.ResponseTimeStamp, u.TimeStampID, u.Data)
+	return t.unmarshal(ht, u.ProjectID, u.RequestTimeStamp, u.ResponseTimeStamp, u.TimeStampIdx, u.Data)
 }

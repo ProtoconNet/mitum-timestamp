@@ -11,18 +11,18 @@ import (
 func (de Design) MarshalBSON() ([]byte, error) {
 	return bsonenc.Marshal(
 		bson.M{
-			"_hint":    de.Hint().String(),
-			"projects": de.projects,
+			"_hint":       de.Hint().String(),
+			"projects_id": de.projects,
 		})
 }
 
 type DesignBSONUnmarshaler struct {
 	Hint     string   `bson:"_hint"`
-	Projects []string `bson:"projects"`
+	Projects []string `bson:"projects_id"`
 }
 
 func (de *Design) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
-	e := util.StringError("failed to decode bson of Design")
+	e := util.StringError("decode bson of Design")
 
 	var u DesignBSONUnmarshaler
 	if err := bson.Unmarshal(b, &u); err != nil {

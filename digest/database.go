@@ -1,12 +1,12 @@
 package digest
 
 import (
-	currencydigest "github.com/ProtoconNet/mitum-currency/v3/digest"
-	"github.com/ProtoconNet/mitum-currency/v3/digest/util"
+	cdigest "github.com/ProtoconNet/mitum-currency/v3/digest"
+	utilc "github.com/ProtoconNet/mitum-currency/v3/digest/util"
 	timestampservice "github.com/ProtoconNet/mitum-timestamp/state"
 	"github.com/ProtoconNet/mitum-timestamp/types"
-	mitumbase "github.com/ProtoconNet/mitum2/base"
-	mitumutil "github.com/ProtoconNet/mitum2/util"
+	"github.com/ProtoconNet/mitum2/base"
+	utilm "github.com/ProtoconNet/mitum2/util"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -22,20 +22,20 @@ var (
 	defaultColNameBlock           = "digest_bm"
 )
 
-func Timestamp(st *currencydigest.Database, contract string) (types.Design, mitumbase.State, error) {
-	filter := util.NewBSONFilter("contract", contract)
+func TimestampDesign(st *cdigest.Database, contract string) (types.Design, base.State, error) {
+	filter := utilc.NewBSONFilter("contract", contract)
 	filter = filter.Add("isItem", false)
 	q := filter.D()
 
 	opt := options.FindOne().SetSort(
-		util.NewBSONFilter("height", -1).D(),
+		utilc.NewBSONFilter("height", -1).D(),
 	)
-	var sta mitumbase.State
-	if err := st.DatabaseClient().GetByFilter(
+	var sta base.State
+	if err := st.MongoClient().GetByFilter(
 		defaultColNameTimeStamp,
 		q,
 		func(res *mongo.SingleResult) error {
-			i, err := currencydigest.LoadState(res.Decode, st.DatabaseEncoders())
+			i, err := cdigest.LoadState(res.Decode, st.Encoders())
 			if err != nil {
 				return err
 			}
@@ -44,11 +44,11 @@ func Timestamp(st *currencydigest.Database, contract string) (types.Design, mitu
 		},
 		opt,
 	); err != nil {
-		return types.Design{}, nil, mitumutil.ErrNotFound.WithMessage(err, "timestamp service by contract %s", contract)
+		return types.Design{}, nil, utilm.ErrNotFound.WithMessage(err, "timestamp design by contract account %v", contract)
 	}
 
 	if sta != nil {
-		de, err := timestampservice.StateServiceDesignValue(sta)
+		de, err := timestampservice.GetDesignFromState(sta)
 		if err != nil {
 			return types.Design{}, nil, err
 		}
@@ -58,40 +58,40 @@ func Timestamp(st *currencydigest.Database, contract string) (types.Design, mitu
 	}
 }
 
-func TimestampItem(st *currencydigest.Database, contract, project string, idx uint64) (types.TimeStampItem, mitumbase.State, error) {
-	filter := util.NewBSONFilter("contract", contract)
-	filter = filter.Add("project", project)
-	filter = filter.Add("timestampidx", idx)
+func TimestampItem(db *cdigest.Database, contract, project string, idx uint64) (types.Item, base.State, error) {
+	filter := utilc.NewBSONFilter("contract", contract)
+	filter = filter.Add("project_id", project)
+	filter = filter.Add("timestamp_idx", idx)
 	filter = filter.Add("isItem", true)
 	q := filter.D()
 
 	opt := options.FindOne().SetSort(
-		util.NewBSONFilter("height", -1).D(),
+		utilc.NewBSONFilter("height", -1).D(),
 	)
-	var sta mitumbase.State
-	if err := st.DatabaseClient().GetByFilter(
+	var st base.State
+	if err := db.MongoClient().GetByFilter(
 		defaultColNameTimeStamp,
 		q,
 		func(res *mongo.SingleResult) error {
-			i, err := currencydigest.LoadState(res.Decode, st.DatabaseEncoders())
+			i, err := cdigest.LoadState(res.Decode, db.Encoders())
 			if err != nil {
 				return err
 			}
-			sta = i
+			st = i
 			return nil
 		},
 		opt,
 	); err != nil {
-		return types.TimeStampItem{}, nil, mitumutil.ErrNotFound.WithMessage(err, "timestamp item by contract %s, project %s, timestamp idx %s", contract, project, idx)
+		return types.Item{}, nil, utilm.ErrNotFound.WithMessage(err, "timestamp item by contract account %s, project %s, timestamp idx %s", contract, project, idx)
 	}
 
-	if sta != nil {
-		it, err := timestampservice.StateTimeStampItemValue(sta)
+	if st != nil {
+		it, err := timestampservice.GetItemFromState(st)
 		if err != nil {
-			return types.TimeStampItem{}, nil, err
+			return types.Item{}, nil, err
 		}
-		return it, sta, nil
+		return it, st, nil
 	} else {
-		return types.TimeStampItem{}, nil, errors.Errorf("state is nil")
+		return types.Item{}, nil, errors.Errorf("state is nil")
 	}
 }

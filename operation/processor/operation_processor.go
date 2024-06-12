@@ -43,7 +43,7 @@ func CheckDuplication(opr *currencyprocessor.OperationProcessor, op mitumbase.Op
 		if !ok {
 			return errors.Errorf("expected UpdateKeyFact, not %T", t.Fact())
 		}
-		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Target().String(), DuplicationTypeSender)
+		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Sender().String(), DuplicationTypeSender)
 	case currency.Transfer:
 		fact, ok := t.Fact().(currency.TransferFact)
 		if !ok {
@@ -81,15 +81,15 @@ func CheckDuplication(opr *currencyprocessor.OperationProcessor, op mitumbase.Op
 			return errors.Errorf("expected WithdrawFact, not %T", t.Fact())
 		}
 		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Sender().String(), DuplicationTypeSender)
-	case timestamp.CreateService:
-		fact, ok := t.Fact().(timestamp.CreateServiceFact)
+	case timestamp.RegisterModel:
+		fact, ok := t.Fact().(timestamp.RegisterModelFact)
 		if !ok {
 			return errors.Errorf("expected CreateServiceFact, not %T", t.Fact())
 		}
 		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Sender().String(), DuplicationTypeSender)
 		duplicationTypeContractID = currencyprocessor.DuplicationKey(fact.Contract().String(), DuplicationTypeContract)
-	case timestamp.Append:
-		fact, ok := t.Fact().(timestamp.AppendFact)
+	case timestamp.Issue:
+		fact, ok := t.Fact().(timestamp.IssueFact)
 		if !ok {
 			return errors.Errorf("expected AppendFact, not %T", t.Fact())
 		}
@@ -164,8 +164,8 @@ func GetNewProcessor(opr *currencyprocessor.OperationProcessor, op mitumbase.Ope
 		currency.RegisterCurrency,
 		currency.UpdateCurrency,
 		currency.Mint,
-		timestamp.CreateService,
-		timestamp.Append:
+		timestamp.RegisterModel,
+		timestamp.Issue:
 		return nil, false, errors.Errorf("%T needs SetProcessor", t)
 	default:
 		return nil, false, nil

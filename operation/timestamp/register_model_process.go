@@ -17,9 +17,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-var createServiceProcessorPool = sync.Pool{
+var registerModelProcessorPool = sync.Pool{
 	New: func() interface{} {
-		return new(CreateServiceProcessor)
+		return new(RegisterModelProcessor)
 	},
 }
 
@@ -29,11 +29,11 @@ var createServiceProcessorPool = sync.Pool{
 //	return nil, nil, nil
 //}
 
-type CreateServiceProcessor struct {
+type RegisterModelProcessor struct {
 	*mitumbase.BaseOperationProcessor
 }
 
-func NewCreateServiceProcessor() currencytypes.GetNewProcessor {
+func NewRegisterModelProcessor() currencytypes.GetNewProcessor {
 	return func(
 		height mitumbase.Height,
 		getStateFunc mitumbase.GetStateFunc,
@@ -42,8 +42,8 @@ func NewCreateServiceProcessor() currencytypes.GetNewProcessor {
 	) (mitumbase.OperationProcessor, error) {
 		e := util.StringError("failed to create new CreateServiceProcessor")
 
-		nopp := createServiceProcessorPool.Get()
-		opp, ok := nopp.(*CreateServiceProcessor)
+		nopp := registerModelProcessorPool.Get()
+		opp, ok := nopp.(*RegisterModelProcessor)
 		if !ok {
 			return nil, errors.Errorf("expected servicesRegisterProcessor, not %T", nopp)
 		}
@@ -60,15 +60,15 @@ func NewCreateServiceProcessor() currencytypes.GetNewProcessor {
 	}
 }
 
-func (opp *CreateServiceProcessor) PreProcess(
+func (opp *RegisterModelProcessor) PreProcess(
 	ctx context.Context, op mitumbase.Operation, getStateFunc mitumbase.GetStateFunc,
 ) (context.Context, mitumbase.OperationProcessReasonError, error) {
-	fact, ok := op.Fact().(CreateServiceFact)
+	fact, ok := op.Fact().(RegisterModelFact)
 	if !ok {
 		return ctx, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Wrap(common.ErrMTypeMismatch).
-				Errorf("expected %T, not %T", CreateServiceFact{}, op.Fact())), nil
+				Errorf("expected %T, not %T", RegisterModelFact{}, op.Fact())), nil
 	}
 
 	if err := fact.IsValid(nil); err != nil {
@@ -77,7 +77,7 @@ func (opp *CreateServiceProcessor) PreProcess(
 				Errorf("%v", err)), nil
 	}
 
-	if err := state.CheckExistsState(statecurrency.StateKeyCurrencyDesign(fact.Currency()), getStateFunc); err != nil {
+	if err := state.CheckExistsState(statecurrency.DesignStateKey(fact.Currency()), getStateFunc); err != nil {
 		return ctx, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id, %v", fact.Currency())), nil
 	}
@@ -117,7 +117,7 @@ func (opp *CreateServiceProcessor) PreProcess(
 				"contract account %v has already been activated", fact.Contract())), nil
 	}
 
-	if found, _ := state.CheckNotExistsState(statetimestamp.StateKeyServiceDesign(fact.Contract()), getStateFunc); found {
+	if found, _ := state.CheckNotExistsState(statetimestamp.DesignStateKey(fact.Contract()), getStateFunc); found {
 		return ctx, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Wrap(common.ErrMServiceE).Errorf("timestamp service for contract account %v",
@@ -136,13 +136,13 @@ func (opp *CreateServiceProcessor) PreProcess(
 	return ctx, nil, nil
 }
 
-func (opp *CreateServiceProcessor) Process(
+func (opp *RegisterModelProcessor) Process(
 	_ context.Context, op mitumbase.Operation, getStateFunc mitumbase.GetStateFunc) (
 	[]mitumbase.StateMergeValue, mitumbase.OperationProcessReasonError, error,
 ) {
 	e := util.StringError("failed to process CreateService")
 
-	fact, ok := op.Fact().(CreateServiceFact)
+	fact, ok := op.Fact().(RegisterModelFact)
 	if !ok {
 		return nil, nil, e.Errorf("expected CreateServiceFact, not %T", op.Fact())
 	}
@@ -152,12 +152,12 @@ func (opp *CreateServiceProcessor) Process(
 
 	design := types.NewDesign(pids...)
 	if err := design.IsValid(nil); err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("invalid service design, %q; %w", fact.Contract(), err), nil
+		return nil, mitumbase.NewBaseOperationProcessReasonError("invalid timestamp design, %q; %w", fact.Contract(), err), nil
 	}
 
 	sts = append(sts, state.NewStateMergeValue(
-		statetimestamp.StateKeyServiceDesign(fact.Contract()),
-		statetimestamp.NewServiceDesignStateValue(design),
+		statetimestamp.DesignStateKey(fact.Contract()),
+		statetimestamp.NewDesignStateValue(design),
 	))
 
 	st, err := state.ExistsState(stateextension.StateKeyContractAccount(fact.Contract()), "contract account", getStateFunc)
@@ -195,7 +195,7 @@ func (opp *CreateServiceProcessor) Process(
 	}
 
 	senderBalSt, err := state.ExistsState(
-		statecurrency.StateKeyBalance(fact.Sender(), fact.Currency()),
+		statecurrency.BalanceStateKey(fact.Sender(), fact.Currency()),
 		"sender balance",
 		getStateFunc,
 	)
@@ -211,7 +211,7 @@ func (opp *CreateServiceProcessor) Process(
 	case err != nil:
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			"failed to get balance value, %q; %w",
-			statecurrency.StateKeyBalance(fact.Sender(), fact.Currency()),
+			statecurrency.BalanceStateKey(fact.Sender(), fact.Currency()),
 			err,
 		), nil
 	case senderBal.Big().Compare(fee) < 0:
@@ -226,9 +226,9 @@ func (opp *CreateServiceProcessor) Process(
 		return nil, mitumbase.NewBaseOperationProcessReasonError("expected BalanceStateValue, not %T", senderBalSt.Value()), nil
 	}
 
-	if err := state.CheckExistsState(statecurrency.StateKeyAccount(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
+	if err := state.CheckExistsState(statecurrency.AccountStateKey(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
 		return nil, nil, err
-	} else if feeRcvrSt, found, err := getStateFunc(statecurrency.StateKeyBalance(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
+	} else if feeRcvrSt, found, err := getStateFunc(statecurrency.BalanceStateKey(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
 		return nil, nil, err
 	} else if !found {
 		return nil, nil, errors.Errorf("feeer receiver %s not found", currencyPolicy.Feeer().Receiver())
@@ -257,8 +257,8 @@ func (opp *CreateServiceProcessor) Process(
 	return sts, nil, nil
 }
 
-func (opp *CreateServiceProcessor) Close() error {
-	createServiceProcessorPool.Put(opp)
+func (opp *RegisterModelProcessor) Close() error {
+	registerModelProcessorPool.Put(opp)
 
 	return nil
 }

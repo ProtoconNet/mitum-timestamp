@@ -8,15 +8,15 @@ import (
 	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
-type CreateServiceFactJSONMarshaler struct {
+type RegisterModelFactJSONMarshaler struct {
 	mitumbase.BaseFactJSONMarshaler
 	Sender   mitumbase.Address `json:"sender"`
 	Contract mitumbase.Address `json:"contract"`
 	Currency types.CurrencyID  `json:"currency"`
 }
 
-func (fact CreateServiceFact) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(CreateServiceFactJSONMarshaler{
+func (fact RegisterModelFact) MarshalJSON() ([]byte, error) {
+	return util.MarshalJSON(RegisterModelFactJSONMarshaler{
 		BaseFactJSONMarshaler: fact.BaseFact.JSONMarshaler(),
 		Sender:                fact.sender,
 		Contract:              fact.contract,
@@ -24,15 +24,15 @@ func (fact CreateServiceFact) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type CreateServiceFactJSONUnmarshaler struct {
+type RegisterModelFactJSONUnmarshaler struct {
 	mitumbase.BaseFactJSONUnmarshaler
 	Sender   string `json:"sender"`
 	Contract string `json:"contract"`
 	Currency string `json:"currency"`
 }
 
-func (fact *CreateServiceFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
-	var u CreateServiceFactJSONUnmarshaler
+func (fact *RegisterModelFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
+	var u RegisterModelFactJSONUnmarshaler
 	if err := enc.Unmarshal(b, &u); err != nil {
 		return common.DecorateError(err, common.ErrDecodeJson, *fact)
 	}
@@ -46,17 +46,17 @@ func (fact *CreateServiceFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	return nil
 }
 
-type createServiceMarshaler struct {
+type registerModelMarshaler struct {
 	common.BaseOperationJSONMarshaler
 }
 
-func (op CreateService) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(createServiceMarshaler{
+func (op RegisterModel) MarshalJSON() ([]byte, error) {
+	return util.MarshalJSON(registerModelMarshaler{
 		BaseOperationJSONMarshaler: op.BaseOperation.JSONMarshaler(),
 	})
 }
 
-func (op *CreateService) DecodeJSON(b []byte, enc encoder.Encoder) error {
+func (op *RegisterModel) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	var ubo common.BaseOperation
 	if err := ubo.DecodeJSON(b, enc); err != nil {
 		return common.DecorateError(err, common.ErrDecodeJson, *op)

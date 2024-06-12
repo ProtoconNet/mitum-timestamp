@@ -12,13 +12,13 @@ type AppendFactJSONMarshaler struct {
 	mitumbase.BaseFactJSONMarshaler
 	Sender           mitumbase.Address `json:"sender"`
 	Contract         mitumbase.Address `json:"contract"`
-	ProjectID        string            `json:"projectid"`
+	ProjectID        string            `json:"project_id"`
 	RequestTimeStamp uint64            `json:"request_timestamp"`
 	Data             string            `json:"data"`
 	Currency         types.CurrencyID  `json:"currency"`
 }
 
-func (fact AppendFact) MarshalJSON() ([]byte, error) {
+func (fact IssueFact) MarshalJSON() ([]byte, error) {
 	return util.MarshalJSON(AppendFactJSONMarshaler{
 		BaseFactJSONMarshaler: fact.BaseFact.JSONMarshaler(),
 		Sender:                fact.sender,
@@ -34,13 +34,13 @@ type AppendFactJSONUnmarshaler struct {
 	mitumbase.BaseFactJSONUnmarshaler
 	Sender           string `json:"sender"`
 	Contract         string `json:"contract"`
-	ProjectID        string `json:"projectid"`
+	ProjectID        string `json:"project_id"`
 	RequestTimeStamp uint64 `json:"request_timestamp"`
 	Data             string `json:"data"`
 	Currency         string `json:"currency"`
 }
 
-func (fact *AppendFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
+func (fact *IssueFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	var u AppendFactJSONUnmarshaler
 	if err := enc.Unmarshal(b, &u); err != nil {
 		return common.DecorateError(err, common.ErrDecodeJson, *fact)
@@ -59,13 +59,13 @@ type mintMarshaler struct {
 	common.BaseOperationJSONMarshaler
 }
 
-func (op Append) MarshalJSON() ([]byte, error) {
+func (op Issue) MarshalJSON() ([]byte, error) {
 	return util.MarshalJSON(mintMarshaler{
 		BaseOperationJSONMarshaler: op.BaseOperation.JSONMarshaler(),
 	})
 }
 
-func (op *Append) DecodeJSON(b []byte, enc encoder.Encoder) error {
+func (op *Issue) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	var ubo common.BaseOperation
 	if err := ubo.DecodeJSON(b, enc); err != nil {
 		return common.DecorateError(err, common.ErrDecodeJson, *op)

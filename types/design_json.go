@@ -8,7 +8,7 @@ import (
 
 type DesignJSONMarshaler struct {
 	hint.BaseHinter
-	Projects []string `json:"projects"`
+	Projects []string `json:"projects_id"`
 }
 
 func (de Design) MarshalJSON() ([]byte, error) {
@@ -20,7 +20,7 @@ func (de Design) MarshalJSON() ([]byte, error) {
 
 type DesignJSONUnmarshaler struct {
 	Hint     hint.Hint `json:"_hint"`
-	Projects []string  `json:"projects"`
+	Projects []string  `json:"projects_id"`
 }
 
 func (de *Design) DecodeJSON(b []byte, enc encoder.Encoder) error {

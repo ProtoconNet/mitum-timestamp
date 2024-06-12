@@ -6,7 +6,7 @@ import (
 	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
-func (fact *AppendFact) unpack(
+func (fact *IssueFact) unpack(
 	enc encoder.Encoder,
 	sa, ta, pid string,
 	rqts uint64,

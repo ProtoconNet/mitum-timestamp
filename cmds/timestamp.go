@@ -1,6 +1,6 @@
 package cmds
 
 type TimestampCommand struct {
-	Append        AppendCommand        `cmd:"" name:"ts-append" help:"append new timestamp item"`
-	CreateService CreateServiceCommand `cmd:"" name:"creates-service" help:"register timestamp service"`
+	Issue         IssueCommand         `cmd:"" name:"issue" help:"issue new timestamp item"`
+	RegisterModel RegisterModelCommand `cmd:"" name:"register-model" help:"register timestamp model"`
 }

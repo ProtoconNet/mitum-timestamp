@@ -3,47 +3,46 @@ package digest
 import (
 	mongodb "github.com/ProtoconNet/mitum-currency/v3/digest/mongodb"
 	bson "github.com/ProtoconNet/mitum-currency/v3/digest/util/bson"
-	crcystate "github.com/ProtoconNet/mitum-currency/v3/state"
+	cstate "github.com/ProtoconNet/mitum-currency/v3/state"
 	"github.com/ProtoconNet/mitum-timestamp/state"
 	"github.com/ProtoconNet/mitum-timestamp/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util/encoder"
-	"github.com/pkg/errors"
 )
 
-type TimeStampServiceDesignDoc struct {
+type DesignDoc struct {
 	mongodb.BaseDoc
-	st  base.State
-	tsd types.Design
+	st     base.State
+	design types.Design
 }
 
-// NewTimeStampServiceDesignDoc gets the State of TimeStampServiceDesign
-func NewTimeStampServiceDesignDoc(st base.State, enc encoder.Encoder) (TimeStampServiceDesignDoc, error) {
-	tsd, err := state.StateServiceDesignValue(st)
+// NewDesignDoc get the State of TimeStamp Design
+func NewDesignDoc(st base.State, enc encoder.Encoder) (DesignDoc, error) {
+	design, err := state.GetDesignFromState(st)
 
 	if err != nil {
-		return TimeStampServiceDesignDoc{}, errors.Wrap(err, "TimeStampServiceDesignDoc needs ServiceDesign state")
+		return DesignDoc{}, err
 	}
 
 	b, err := mongodb.NewBaseDoc(nil, st, enc)
 	if err != nil {
-		return TimeStampServiceDesignDoc{}, err
+		return DesignDoc{}, err
 	}
 
-	return TimeStampServiceDesignDoc{
+	return DesignDoc{
 		BaseDoc: b,
 		st:      st,
-		tsd:     tsd,
+		design:  design,
 	}, nil
 }
 
-func (doc TimeStampServiceDesignDoc) MarshalBSON() ([]byte, error) {
+func (doc DesignDoc) MarshalBSON() ([]byte, error) {
 	m, err := doc.BaseDoc.M()
 	if err != nil {
 		return nil, err
 	}
 
-	parsedKey, err := crcystate.ParseStateKey(doc.st.Key(), state.StateKeyTimeStampPrefix, 3)
+	parsedKey, err := cstate.ParseStateKey(doc.st.Key(), state.TimeStampStateKeyPrefix, 3)
 
 	m["contract"] = parsedKey[1]
 	m["height"] = doc.st.Height()
@@ -52,44 +51,44 @@ func (doc TimeStampServiceDesignDoc) MarshalBSON() ([]byte, error) {
 	return bson.Marshal(m)
 }
 
-type TimeStampItemDoc struct {
+type ItemDoc struct {
 	mongodb.BaseDoc
-	st     base.State
-	tsItem types.TimeStampItem
+	st   base.State
+	item types.Item
 }
 
-func NewTimeStampItemDoc(st base.State, enc encoder.Encoder) (TimeStampItemDoc, error) {
-	tsItem, err := state.StateTimeStampItemValue(st)
+func NewItemDoc(st base.State, enc encoder.Encoder) (ItemDoc, error) {
+	item, err := state.GetItemFromState(st)
 	if err != nil {
-		return TimeStampItemDoc{}, errors.Wrap(err, "TimeStampServiceDesignDoc needs ServiceDesign state")
+		return ItemDoc{}, err
 	}
 
 	b, err := mongodb.NewBaseDoc(nil, st, enc)
 	if err != nil {
-		return TimeStampItemDoc{}, err
+		return ItemDoc{}, err
 	}
 
-	return TimeStampItemDoc{
+	return ItemDoc{
 		BaseDoc: b,
 		st:      st,
-		tsItem:  tsItem,
+		item:    item,
 	}, nil
 }
 
-func (doc TimeStampItemDoc) MarshalBSON() ([]byte, error) {
+func (doc ItemDoc) MarshalBSON() ([]byte, error) {
 	m, err := doc.BaseDoc.M()
 	if err != nil {
 		return nil, err
 	}
 
-	parsedKey, err := crcystate.ParseStateKey(doc.st.Key(), state.StateKeyTimeStampPrefix, 5)
+	parsedKey, err := cstate.ParseStateKey(doc.st.Key(), state.TimeStampStateKeyPrefix, 5)
 	if err != nil {
 		return nil, err
 	}
 
 	m["contract"] = parsedKey[1]
-	m["project"] = doc.tsItem.ProjectID()
-	m["timestampidx"] = doc.tsItem.TimestampID()
+	m["project_id"] = doc.item.ProjectID()
+	m["timestamp_idx"] = doc.item.TimestampID()
 	m["height"] = doc.st.Height()
 	m["isItem"] = true
 

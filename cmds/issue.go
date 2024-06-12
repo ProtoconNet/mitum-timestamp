@@ -3,13 +3,13 @@ package cmds
 import (
 	"context"
 	currencycmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
-	timestampservice "github.com/ProtoconNet/mitum-timestamp/operation/timestamp"
+	"github.com/ProtoconNet/mitum-timestamp/operation/timestamp"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/pkg/errors"
 )
 
-type AppendCommand struct {
+type IssueCommand struct {
 	BaseCommand
 	currencycmds.OperationFlags
 	Sender           currencycmds.AddressFlag    `arg:"" name:"sender" help:"sender address" required:"true"`
@@ -22,7 +22,7 @@ type AppendCommand struct {
 	contract         base.Address
 }
 
-func (cmd *AppendCommand) Run(pctx context.Context) error { // nolint:dupl
+func (cmd *IssueCommand) Run(pctx context.Context) error { // nolint:dupl
 	if _, err := cmd.prepare(pctx); err != nil {
 		return err
 	}
@@ -41,7 +41,7 @@ func (cmd *AppendCommand) Run(pctx context.Context) error { // nolint:dupl
 	return nil
 }
 
-func (cmd *AppendCommand) parseFlags() error {
+func (cmd *IssueCommand) parseFlags() error {
 	if err := cmd.OperationFlags.IsValid(nil); err != nil {
 		return err
 	}
@@ -75,12 +75,12 @@ func (cmd *AppendCommand) parseFlags() error {
 	return nil
 }
 
-func (cmd *AppendCommand) createOperation() (base.Operation, error) { // nolint:dupl
-	e := util.StringError("failed to create append operation")
+func (cmd *IssueCommand) createOperation() (base.Operation, error) { // nolint:dupl
+	e := util.StringError("failed to create issue operation")
 
-	fact := timestampservice.NewAppendFact([]byte(cmd.Token), cmd.sender, cmd.contract, cmd.ProjectID, cmd.RequestTimeStamp, cmd.Data, cmd.Currency.CID)
+	fact := timestamp.NewIssueFact([]byte(cmd.Token), cmd.sender, cmd.contract, cmd.ProjectID, cmd.RequestTimeStamp, cmd.Data, cmd.Currency.CID)
 
-	op, err := timestampservice.NewAppend(fact)
+	op, err := timestamp.NewIssue(fact)
 	if err != nil {
 		return nil, e.Wrap(err)
 	}

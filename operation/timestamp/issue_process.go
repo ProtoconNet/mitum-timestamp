@@ -17,36 +17,36 @@ import (
 	"github.com/ProtoconNet/mitum2/util"
 )
 
-var appendProcessorPool = sync.Pool{
+var issueProcessorPool = sync.Pool{
 	New: func() interface{} {
-		return new(AppendProcessor)
+		return new(IssueProcessor)
 	},
 }
 
-func (Append) Process(
+func (Issue) Process(
 	_ context.Context, _ mitumbase.GetStateFunc,
 ) ([]mitumbase.StateMergeValue, mitumbase.OperationProcessReasonError, error) {
 	return nil, nil, nil
 }
 
-type AppendProcessor struct {
+type IssueProcessor struct {
 	*mitumbase.BaseOperationProcessor
 	getLastBlockFunc processor.GetLastBlockFunc
 }
 
-func NewAppendProcessor(getLastBlockFunc processor.GetLastBlockFunc) currencytypes.GetNewProcessor {
+func NewIssueProcessor(getLastBlockFunc processor.GetLastBlockFunc) currencytypes.GetNewProcessor {
 	return func(
 		height mitumbase.Height,
 		getStateFunc mitumbase.GetStateFunc,
 		newPreProcessConstraintFunc mitumbase.NewOperationProcessorProcessFunc,
 		newProcessConstraintFunc mitumbase.NewOperationProcessorProcessFunc,
 	) (mitumbase.OperationProcessor, error) {
-		e := util.StringError("failed to create new AppendProcessor")
+		e := util.StringError("failed to create new IssueProcessor")
 
-		nopp := appendProcessorPool.Get()
-		opp, ok := nopp.(*AppendProcessor)
+		nopp := issueProcessorPool.Get()
+		opp, ok := nopp.(*IssueProcessor)
 		if !ok {
-			return nil, e.Errorf("expected AppendProcessor, not %T", nopp)
+			return nil, e.Errorf("expected IssueProcessor, not %T", nopp)
 		}
 
 		b, err := mitumbase.NewBaseOperationProcessor(
@@ -62,15 +62,15 @@ func NewAppendProcessor(getLastBlockFunc processor.GetLastBlockFunc) currencytyp
 	}
 }
 
-func (opp *AppendProcessor) PreProcess(
+func (opp *IssueProcessor) PreProcess(
 	ctx context.Context, op mitumbase.Operation, getStateFunc mitumbase.GetStateFunc,
 ) (context.Context, mitumbase.OperationProcessReasonError, error) {
-	fact, ok := op.Fact().(AppendFact)
+	fact, ok := op.Fact().(IssueFact)
 	if !ok {
 		return ctx, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Wrap(common.ErrMTypeMismatch).
-				Errorf("expected %T, not %T", AppendFact{}, op.Fact())), nil
+				Errorf("expected %T, not %T", IssueFact{}, op.Fact())), nil
 	}
 
 	if err := fact.IsValid(nil); err != nil {
@@ -79,7 +79,7 @@ func (opp *AppendProcessor) PreProcess(
 				Errorf("%v", err)), nil
 	}
 
-	if err := state.CheckExistsState(statecurrency.StateKeyCurrencyDesign(fact.Currency()), getStateFunc); err != nil {
+	if err := state.CheckExistsState(statecurrency.DesignStateKey(fact.Currency()), getStateFunc); err != nil {
 		return ctx, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.Wrap(common.ErrMCurrencyNF).Errorf("currency id %v", fact.Currency())), nil
 	}
@@ -119,7 +119,7 @@ func (opp *AppendProcessor) PreProcess(
 				Errorf("%v", err)), nil
 	}
 
-	if err := state.CheckExistsState(statetimestamp.StateKeyServiceDesign(fact.Contract()), getStateFunc); err != nil {
+	if err := state.CheckExistsState(statetimestamp.DesignStateKey(fact.Contract()), getStateFunc); err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
 				Wrap(common.ErrMServiceNF).Errorf("timestamp service for contract account %v",
@@ -127,7 +127,7 @@ func (opp *AppendProcessor) PreProcess(
 			)), nil
 	}
 
-	k := statetimestamp.StateKeyTimeStampLastIndex(fact.Contract(), fact.ProjectId())
+	k := statetimestamp.LastIdxStateKey(fact.Contract(), fact.ProjectId())
 	switch _, _, err := getStateFunc(k); {
 	case err != nil:
 		return nil, mitumbase.NewBaseOperationProcessReasonError("getting timestamp item last index failed, %q; %w", fact.Contract(), err), nil
@@ -147,23 +147,23 @@ func (opp *AppendProcessor) PreProcess(
 	return ctx, nil, nil
 }
 
-func (opp *AppendProcessor) Process( // nolint:dupl
+func (opp *IssueProcessor) Process( // nolint:dupl
 	_ context.Context, op mitumbase.Operation, getStateFunc mitumbase.GetStateFunc) (
 	[]mitumbase.StateMergeValue, mitumbase.OperationProcessReasonError, error,
 ) {
 	e := util.StringError("failed to process Append")
 
-	fact, ok := op.Fact().(AppendFact)
+	fact, ok := op.Fact().(IssueFact)
 	if !ok {
 		return nil, nil, e.Errorf("expected AppendFact, not %T", op.Fact())
 	}
 
-	st, err := state.ExistsState(statetimestamp.StateKeyServiceDesign(fact.Contract()), "service design", getStateFunc)
+	st, err := state.ExistsState(statetimestamp.DesignStateKey(fact.Contract()), "service design", getStateFunc)
 	if err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError("service design not found, %q; %w", fact.Contract(), err), nil
 	}
 
-	design, err := statetimestamp.StateServiceDesignValue(st)
+	design, err := statetimestamp.GetDesignFromState(st)
 	if err != nil {
 		return nil, mitumbase.NewBaseOperationProcessReasonError("service design value not found, %q; %w", fact.Contract(), err), nil
 	}
@@ -174,7 +174,7 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 	}
 
 	var idx uint64
-	k := statetimestamp.StateKeyTimeStampLastIndex(fact.Contract(), fact.ProjectId())
+	k := statetimestamp.LastIdxStateKey(fact.Contract(), fact.ProjectId())
 	switch st, found, err := getStateFunc(k); {
 	case err != nil:
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
@@ -183,7 +183,7 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 			err,
 		), nil
 	case found:
-		i, err := statetimestamp.StateTimeStampLastIndexValue(st)
+		i, err := statetimestamp.GetLastIdxFromState(st)
 		if err != nil {
 			return nil, mitumbase.NewBaseOperationProcessReasonError(
 				"getting timestamp item lastindex value failed, %q; %w",
@@ -204,7 +204,7 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 		return nil, mitumbase.NewBaseOperationProcessReasonError("LastBlock not found"), nil
 	}
 
-	tsItem := types.NewTimeStampItem(
+	tsItem := types.NewItem(
 		fact.ProjectId(),
 		fact.RequestTimeStamp(),
 		uint64(blockmap.Manifest().ProposedAt().Unix()),
@@ -217,16 +217,16 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 
 	var sts []mitumbase.StateMergeValue // nolint:prealloc
 	sts = append(sts, state.NewStateMergeValue(
-		statetimestamp.StateKeyTimeStampItem(fact.Contract(), fact.ProjectId(), idx),
-		statetimestamp.NewTimeStampItemStateValue(tsItem),
+		statetimestamp.ItemStateKey(fact.Contract(), fact.ProjectId(), idx),
+		statetimestamp.NewItemStateValue(tsItem),
 	))
 	sts = append(sts, state.NewStateMergeValue(
-		statetimestamp.StateKeyTimeStampLastIndex(fact.Contract(), fact.ProjectId()),
-		statetimestamp.NewTimeStampLastIndexStateValue(fact.ProjectId(), idx),
+		statetimestamp.LastIdxStateKey(fact.Contract(), fact.ProjectId()),
+		statetimestamp.NewLastIdxStateValue(fact.ProjectId(), idx),
 	))
 	sts = append(sts, state.NewStateMergeValue(
-		statetimestamp.StateKeyServiceDesign(fact.Contract()),
-		statetimestamp.NewServiceDesignStateValue(design),
+		statetimestamp.DesignStateKey(fact.Contract()),
+		statetimestamp.NewDesignStateValue(design),
 	))
 
 	currencyPolicy, err := state.ExistsCurrencyPolicy(fact.Currency(), getStateFunc)
@@ -248,7 +248,7 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 	}
 
 	senderBalSt, err := state.ExistsState(
-		statecurrency.StateKeyBalance(fact.Sender(), fact.Currency()),
+		statecurrency.BalanceStateKey(fact.Sender(), fact.Currency()),
 		"sender balance",
 		getStateFunc,
 	)
@@ -264,7 +264,7 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 	case err != nil:
 		return nil, mitumbase.NewBaseOperationProcessReasonError(
 			"failed to get balance value, %q; %w",
-			statecurrency.StateKeyBalance(fact.Sender(), fact.Currency()),
+			statecurrency.BalanceStateKey(fact.Sender(), fact.Currency()),
 			err,
 		), nil
 	case senderBal.Big().Compare(fee) < 0:
@@ -279,9 +279,9 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 		return nil, mitumbase.NewBaseOperationProcessReasonError("expected BalanceStateValue, not %T", senderBalSt.Value()), nil
 	}
 
-	if err := state.CheckExistsState(statecurrency.StateKeyAccount(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
+	if err := state.CheckExistsState(statecurrency.AccountStateKey(currencyPolicy.Feeer().Receiver()), getStateFunc); err != nil {
 		return nil, nil, err
-	} else if feeRcvrSt, found, err := getStateFunc(statecurrency.StateKeyBalance(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
+	} else if feeRcvrSt, found, err := getStateFunc(statecurrency.BalanceStateKey(currencyPolicy.Feeer().Receiver(), fact.currency)); err != nil {
 		return nil, nil, err
 	} else if !found {
 		return nil, nil, errors.Errorf("feeer receiver %s not found", currencyPolicy.Feeer().Receiver())
@@ -310,8 +310,8 @@ func (opp *AppendProcessor) Process( // nolint:dupl
 	return sts, nil, nil
 }
 
-func (opp *AppendProcessor) Close() error {
-	appendProcessorPool.Put(opp)
+func (opp *IssueProcessor) Close() error {
+	issueProcessorPool.Put(opp)
 
 	return nil
 }
