@@ -40,7 +40,7 @@ func (hd *Handlers) handleTimeStampDesign(w http.ResponseWriter, r *http.Request
 	}); err != nil {
 		currencydigest.HTTP2HandleError(w, err)
 	} else {
-		currencydigest.HTTP2WriteHalBytes(hd.enc, w, v.([]byte), http.StatusOK)
+		currencydigest.HTTP2WriteHalBytes(hd.encoder, w, v.([]byte), http.StatusOK)
 
 		if !shared {
 			currencydigest.HTTP2WriteCache(w, cacheKey, time.Second*3)
@@ -61,7 +61,7 @@ func (hd *Handlers) handleTimeStampDesignInGroup(contract string) ([]byte, error
 	if err != nil {
 		return nil, err
 	}
-	return hd.enc.Marshal(i)
+	return hd.encoder.Marshal(i)
 }
 
 func (hd *Handlers) buildTimeStampDesign(contract string, de types.Design, st base.State) (currencydigest.Hal, error) {
@@ -141,7 +141,7 @@ func (hd *Handlers) handleTimeStampItem(w http.ResponseWriter, r *http.Request) 
 	}); err != nil {
 		currencydigest.HTTP2HandleError(w, err)
 	} else {
-		currencydigest.HTTP2WriteHalBytes(hd.enc, w, v.([]byte), http.StatusOK)
+		currencydigest.HTTP2WriteHalBytes(hd.encoder, w, v.([]byte), http.StatusOK)
 
 		if !shared {
 			currencydigest.HTTP2WriteCache(w, cachekey, time.Second*3)
@@ -162,7 +162,7 @@ func (hd *Handlers) handleTimeStampItemInGroup(contract, project string, idx uin
 	if err != nil {
 		return nil, err
 	}
-	return hd.enc.Marshal(i)
+	return hd.encoder.Marshal(i)
 }
 
 func (hd *Handlers) buildTimeStampItem(contract string, it types.Item, st base.State) (currencydigest.Hal, error) {

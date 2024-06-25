@@ -38,8 +38,8 @@ func init() {
 type Handlers struct {
 	*zerolog.Logger
 	networkID       base.NetworkID
-	encs            *encoder.Encoders
-	enc             encoder.Encoder
+	encoders        *encoder.Encoders
+	encoder         encoder.Encoder
 	database        *currencydigest.Database
 	cache           currencydigest.Cache
 	nodeInfoHandler currencydigest.NodeInfoHandler
@@ -70,8 +70,8 @@ func NewHandlers(
 	return &Handlers{
 		Logger:          log.Log(),
 		networkID:       networkID,
-		encs:            encs,
-		enc:             enc,
+		encoders:        encs,
+		encoder:         enc,
 		database:        st,
 		cache:           cache,
 		router:          router,
