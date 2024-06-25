@@ -113,7 +113,7 @@ func (hd *Handlers) handleTimeStampItem(w http.ResponseWriter, r *http.Request) 
 	contract = s
 
 	var project string
-	s, found = mux.Vars(r)["project"]
+	s, found = mux.Vars(r)["project_id"]
 	if !found {
 		currencydigest.HTTP2ProblemWithError(w, errors.Errorf("empty project id"), http.StatusNotFound)
 
@@ -128,7 +128,7 @@ func (hd *Handlers) handleTimeStampItem(w http.ResponseWriter, r *http.Request) 
 	}
 	project = s
 
-	s, found = mux.Vars(r)["tid"]
+	s, found = mux.Vars(r)["timestamp_idx"]
 	idx, err := parseIdxFromPath(s)
 	if err != nil {
 		currencydigest.HTTP2ProblemWithError(w, err, http.StatusBadRequest)
