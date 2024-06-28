@@ -52,10 +52,10 @@ func (fact IssueFact) IsValid(b []byte) error {
 					"invalid projectID length %v < 1 or > %v", len(fact.projectID), types.MaxProjectIDLen)))
 	}
 
-	if !currencytypes.ReSpcecialChar.Match([]byte(fact.projectID)) {
+	if !currencytypes.ReValidSpcecialCh.Match([]byte(fact.projectID)) {
 		return common.ErrFactInvalid.Wrap(
 			common.ErrValueInvalid.Wrap(
-				errors.Errorf("projectID ID %s, must match regex `^[^\\s:/?#\\[\\]@]*$`", fact.projectID)))
+				errors.Errorf("projectID ID %s, must match regex `^[^\\s:/?#\\[\\]$@]*$`", fact.projectID)))
 	}
 
 	if len(fact.data) < 1 || len(fact.data) > types.MaxDataLen {

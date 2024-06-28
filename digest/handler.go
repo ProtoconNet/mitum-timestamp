@@ -24,7 +24,7 @@ import (
 
 var (
 	HandlerPathTimeStampDesign = `/timestamp/{contract:(?i)` + types.REStringAddressString + `}`
-	HandlerPathTimeStampItem   = `/timestamp/{contract:(?i)` + types.REStringAddressString + `}/project/{project_id:.+}/idx/{timestamp_idx:[0-9]+}`
+	HandlerPathTimeStampItem   = `/timestamp/{contract:(?i)` + types.REStringAddressString + `}/project/{project_id:` + types.ReSpecialCh + `}/idx/{timestamp_idx:[0-9]+}`
 )
 
 func init() {

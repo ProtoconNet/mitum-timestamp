@@ -45,8 +45,8 @@ func (t Item) IsValid([]byte) error {
 		return errors.Errorf("invalid projectID length %v < 1 or > %v", len(t.projectID), MaxProjectIDLen)
 	}
 
-	if !currencytypes.ReSpcecialChar.Match([]byte(t.projectID)) {
-		return util.ErrInvalid.Errorf("invalid projectID due to the inclusion of special characters")
+	if !currencytypes.ReValidSpcecialCh.Match([]byte(t.projectID)) {
+		return util.ErrInvalid.Errorf("projectID %v must match regex `^[^\\s:/?#\\[\\]$@]*$`", t.projectID)
 	}
 
 	if len(t.data) < 1 || len(t.data) > MaxDataLen {
