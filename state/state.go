@@ -72,7 +72,7 @@ func GetDesignFromState(st mitumbase.State) (types.Design, error) {
 }
 
 func IsDesignStateKey(key string) bool {
-	return strings.HasSuffix(key, DesignStateKeySuffix)
+	return strings.HasPrefix(key, TimeStampStateKeyPrefix) && strings.HasSuffix(key, DesignStateKeySuffix)
 }
 
 func DesignStateKey(addr mitumbase.Address) string {
@@ -136,7 +136,7 @@ func GetLastIdxFromState(st mitumbase.State) (uint64, error) {
 }
 
 func IsLastIdxStateKey(key string) bool {
-	return strings.HasSuffix(key, LastIdxStateKeySuffix)
+	return strings.HasPrefix(key, TimeStampStateKeyPrefix) && strings.HasSuffix(key, LastIdxStateKeySuffix)
 }
 
 func LastIdxStateKey(addr mitumbase.Address, pid string) string {
@@ -197,7 +197,7 @@ func GetItemFromState(st mitumbase.State) (types.Item, error) {
 }
 
 func IsItemStateKey(key string) bool {
-	return strings.HasSuffix(key, ItemStateKeySuffix)
+	return strings.HasPrefix(key, TimeStampStateKeyPrefix) && strings.HasSuffix(key, ItemStateKeySuffix)
 }
 
 func ItemStateKey(addr mitumbase.Address, pid string, index uint64) string {
