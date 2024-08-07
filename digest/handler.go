@@ -119,13 +119,14 @@ func (hd *Handlers) Handler() http.Handler {
 }
 
 func (hd *Handlers) setHandlers() {
-	_ = hd.setHandler(HandlerPathTimeStampItem, hd.handleTimeStampItem, true).
+	get := 1000
+	_ = hd.setHandler(HandlerPathTimeStampItem, hd.handleTimeStampItem, true, get, get).
 		Methods(http.MethodOptions, "GET")
-	_ = hd.setHandler(HandlerPathTimeStampDesign, hd.handleTimeStampDesign, true).
+	_ = hd.setHandler(HandlerPathTimeStampDesign, hd.handleTimeStampDesign, true, get, get).
 		Methods(http.MethodOptions, "GET")
 }
 
-func (hd *Handlers) setHandler(prefix string, h network.HTTPHandlerFunc, useCache bool) *mux.Route {
+func (hd *Handlers) setHandler(prefix string, h network.HTTPHandlerFunc, useCache bool, rps, burst int) *mux.Route {
 	var handler http.Handler
 	if !useCache {
 		handler = http.HandlerFunc(h)
@@ -148,6 +149,8 @@ func (hd *Handlers) setHandler(prefix string, h network.HTTPHandlerFunc, useCach
 	} else {
 		route = hd.router.Name(name)
 	}
+
+	handler = currencydigest.RateLimiter(rps, burst)(handler)
 
 	/*
 		if rules, found := hd.rateLimit[prefix]; found {
