@@ -2,6 +2,8 @@ package types
 
 import (
 	"bytes"
+	"github.com/ProtoconNet/mitum-currency/v3/common"
+	"github.com/pkg/errors"
 	"sort"
 
 	"github.com/ProtoconNet/mitum2/util"
@@ -10,6 +12,8 @@ import (
 )
 
 var DesignHint = hint.MustNewHint("mitum-timestamp-design-v0.0.1")
+
+var maxProjecs = 100
 
 type Design struct {
 	hint.BaseHinter
@@ -28,6 +32,9 @@ func (de Design) IsValid([]byte) error {
 		de.BaseHinter,
 	); err != nil {
 		return err
+	}
+	if len(de.projects) > maxProjecs {
+		return common.ErrValOOR.Wrap(errors.Errorf("projects over allowed, %d > %d", len(de.projects), maxProjecs))
 	}
 
 	return nil
