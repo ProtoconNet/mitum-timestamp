@@ -36,7 +36,7 @@ type TimeStampItemJSONUnmarshaler struct {
 }
 
 func (t *Item) DecodeJSON(b []byte, enc encoder.Encoder) error {
-	e := util.StringError("failed to decode json of NFT")
+	e := util.StringError("failed to decode json of TimeStampItem")
 
 	var u TimeStampItemJSONUnmarshaler
 	if err := enc.Unmarshal(b, &u); err != nil {

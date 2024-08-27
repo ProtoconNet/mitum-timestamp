@@ -65,7 +65,7 @@ func (cmd *IssueCommand) parseFlags() error {
 	}
 
 	if len(cmd.Data) < 1 {
-		return errors.Errorf("invalid data, %s", cmd.ProjectID)
+		return errors.Errorf("invalid data, %s", cmd.Data)
 	}
 
 	if cmd.RequestTimeStamp < 1 {
