@@ -5,12 +5,10 @@ import (
 	"github.com/ProtoconNet/mitum-timestamp/types"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 )
 
 func (hd *Handlers) handleTimeStampDesign(w http.ResponseWriter, r *http.Request) {
@@ -19,21 +17,12 @@ func (hd *Handlers) handleTimeStampDesign(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	var contract string
-	s, found := mux.Vars(r)["contract"]
-	if !found {
-		currencydigest.HTTP2ProblemWithError(w, errors.Errorf("empty contract address"), http.StatusNotFound)
+	contract, err, status := currencydigest.ParseRequest(w, r, "contract")
+	if err != nil {
+		currencydigest.HTTP2ProblemWithError(w, err, status)
 
 		return
 	}
-
-	s = strings.TrimSpace(s)
-	if len(s) < 1 {
-		currencydigest.HTTP2ProblemWithError(w, errors.Errorf("empty contract address"), http.StatusBadRequest)
-
-		return
-	}
-	contract = s
 
 	if v, err, shared := hd.rg.Do(cacheKey, func() (interface{}, error) {
 		return hd.handleTimeStampDesignInGroup(contract)
@@ -96,39 +85,26 @@ func (hd *Handlers) handleTimeStampItem(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var contract string
-	s, found := mux.Vars(r)["contract"]
+	contract, err, status := currencydigest.ParseRequest(w, r, "contract")
+	if err != nil {
+		currencydigest.HTTP2ProblemWithError(w, err, status)
+
+		return
+	}
+
+	project, err, status := currencydigest.ParseRequest(w, r, "project_id")
+	if err != nil {
+		currencydigest.HTTP2ProblemWithError(w, err, status)
+
+		return
+	}
+
+	s, found := mux.Vars(r)["timestamp_idx"]
 	if !found {
-		currencydigest.HTTP2ProblemWithError(w, errors.Errorf("empty contract address"), http.StatusNotFound)
+		currencydigest.HTTP2ProblemWithError(w, err, http.StatusBadRequest)
 
 		return
 	}
-
-	s = strings.TrimSpace(s)
-	if len(s) < 1 {
-		currencydigest.HTTP2ProblemWithError(w, errors.Errorf("empty contract address"), http.StatusBadRequest)
-
-		return
-	}
-	contract = s
-
-	var project string
-	s, found = mux.Vars(r)["project_id"]
-	if !found {
-		currencydigest.HTTP2ProblemWithError(w, errors.Errorf("empty project id"), http.StatusNotFound)
-
-		return
-	}
-
-	s = strings.TrimSpace(s)
-	if len(s) < 1 {
-		currencydigest.HTTP2ProblemWithError(w, errors.Errorf("empty project id"), http.StatusBadRequest)
-
-		return
-	}
-	project = s
-
-	s, found = mux.Vars(r)["timestamp_idx"]
 	idx, err := parseIdxFromPath(s)
 	if err != nil {
 		currencydigest.HTTP2ProblemWithError(w, err, http.StatusBadRequest)
