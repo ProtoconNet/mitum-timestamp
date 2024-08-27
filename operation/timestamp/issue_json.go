@@ -8,7 +8,7 @@ import (
 	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
-type AppendFactJSONMarshaler struct {
+type IssueFactJSONMarshaler struct {
 	mitumbase.BaseFactJSONMarshaler
 	Sender           mitumbase.Address `json:"sender"`
 	Contract         mitumbase.Address `json:"contract"`
@@ -19,7 +19,7 @@ type AppendFactJSONMarshaler struct {
 }
 
 func (fact IssueFact) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(AppendFactJSONMarshaler{
+	return util.MarshalJSON(IssueFactJSONMarshaler{
 		BaseFactJSONMarshaler: fact.BaseFact.JSONMarshaler(),
 		Sender:                fact.sender,
 		Contract:              fact.contract,
@@ -30,7 +30,7 @@ func (fact IssueFact) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type AppendFactJSONUnmarshaler struct {
+type IssueFactJSONUnmarshaler struct {
 	mitumbase.BaseFactJSONUnmarshaler
 	Sender           string `json:"sender"`
 	Contract         string `json:"contract"`
@@ -41,7 +41,7 @@ type AppendFactJSONUnmarshaler struct {
 }
 
 func (fact *IssueFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
-	var u AppendFactJSONUnmarshaler
+	var u IssueFactJSONUnmarshaler
 	if err := enc.Unmarshal(b, &u); err != nil {
 		return common.DecorateError(err, common.ErrDecodeJson, *fact)
 	}

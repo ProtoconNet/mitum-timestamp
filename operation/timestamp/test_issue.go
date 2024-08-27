@@ -11,16 +11,16 @@ import (
 	"github.com/ProtoconNet/mitum2/util"
 )
 
-type TestAppendProcessor struct {
+type TestIssueProcessor struct {
 	*test.BaseTestOperationProcessorNoItem[Issue]
 }
 
-func NewTestAppendProcessor(tp *test.TestProcessor) TestAppendProcessor {
+func NewTestIssueProcessor(tp *test.TestProcessor) TestIssueProcessor {
 	t := test.NewBaseTestOperationProcessorNoItem[Issue](tp)
-	return TestAppendProcessor{BaseTestOperationProcessorNoItem: &t}
+	return TestIssueProcessor{BaseTestOperationProcessorNoItem: &t}
 }
 
-func (t *TestAppendProcessor) Create() *TestAppendProcessor {
+func (t *TestIssueProcessor) Create() *TestIssueProcessor {
 	t.Opr, _ = NewIssueProcessor(func() (base.BlockMap, bool, error) { return nil, true, nil })(
 		base.GenesisHeight,
 		t.GetStateFunc,
@@ -29,67 +29,67 @@ func (t *TestAppendProcessor) Create() *TestAppendProcessor {
 	return t
 }
 
-func (t *TestAppendProcessor) SetCurrency(
+func (t *TestIssueProcessor) SetCurrency(
 	cid string, am int64, addr base.Address, target []currencytypes.CurrencyID, instate bool,
-) *TestAppendProcessor {
+) *TestIssueProcessor {
 	t.BaseTestOperationProcessorNoItem.SetCurrency(cid, am, addr, target, instate)
 
 	return t
 }
 
-func (t *TestAppendProcessor) SetAmount(
+func (t *TestIssueProcessor) SetAmount(
 	am int64, cid currencytypes.CurrencyID, target []currencytypes.Amount,
-) *TestAppendProcessor {
+) *TestIssueProcessor {
 	t.BaseTestOperationProcessorNoItem.SetAmount(am, cid, target)
 
 	return t
 }
 
-func (t *TestAppendProcessor) SetContractAccount(
+func (t *TestIssueProcessor) SetContractAccount(
 	owner base.Address, priv string, amount int64, cid currencytypes.CurrencyID, target []test.Account, inState bool,
-) *TestAppendProcessor {
+) *TestIssueProcessor {
 	t.BaseTestOperationProcessorNoItem.SetContractAccount(owner, priv, amount, cid, target, inState)
 
 	return t
 }
 
-func (t *TestAppendProcessor) SetAccount(
+func (t *TestIssueProcessor) SetAccount(
 	priv string, amount int64, cid currencytypes.CurrencyID, target []test.Account, inState bool,
-) *TestAppendProcessor {
+) *TestIssueProcessor {
 	t.BaseTestOperationProcessorNoItem.SetAccount(priv, amount, cid, target, inState)
 
 	return t
 }
 
-func (t *TestAppendProcessor) LoadOperation(fileName string,
-) *TestAppendProcessor {
+func (t *TestIssueProcessor) LoadOperation(fileName string,
+) *TestIssueProcessor {
 	t.BaseTestOperationProcessorNoItem.LoadOperation(fileName)
 
 	return t
 }
 
-func (t *TestAppendProcessor) Print(fileName string,
-) *TestAppendProcessor {
+func (t *TestIssueProcessor) Print(fileName string,
+) *TestIssueProcessor {
 	t.BaseTestOperationProcessorNoItem.Print(fileName)
 
 	return t
 }
 
-func (t *TestAppendProcessor) RunPreProcess() *TestAppendProcessor {
+func (t *TestIssueProcessor) RunPreProcess() *TestIssueProcessor {
 	t.BaseTestOperationProcessorNoItem.RunPreProcess()
 
 	return t
 }
 
-func (t *TestAppendProcessor) RunProcess() *TestAppendProcessor {
+func (t *TestIssueProcessor) RunProcess() *TestIssueProcessor {
 	t.BaseTestOperationProcessorNoItem.RunProcess()
 
 	return t
 }
 
-func (t *TestAppendProcessor) SetService(
+func (t *TestIssueProcessor) SetService(
 	contract base.Address,
-) *TestAppendProcessor {
+) *TestIssueProcessor {
 	pids := []string(nil)
 	design := types.NewDesign(pids...)
 
@@ -112,7 +112,7 @@ func (t *TestAppendProcessor) SetService(
 	return t
 }
 
-func (t *TestAppendProcessor) MakeOperation(
+func (t *TestIssueProcessor) MakeOperation(
 	sender base.Address,
 	privatekey base.Privatekey,
 	contract base.Address,
@@ -120,7 +120,7 @@ func (t *TestAppendProcessor) MakeOperation(
 	requestTimeStamp uint64,
 	data string,
 	currency currencytypes.CurrencyID,
-) *TestAppendProcessor {
+) *TestIssueProcessor {
 	op, _ := NewIssue(
 		NewIssueFact(
 			[]byte("token"),

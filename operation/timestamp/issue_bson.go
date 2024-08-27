@@ -25,7 +25,7 @@ func (fact IssueFact) MarshalBSON() ([]byte, error) {
 	)
 }
 
-type AppendFactBSONUnmarshaler struct {
+type IssueFactBSONUnmarshaler struct {
 	Hint             string `bson:"_hint"`
 	Sender           string `bson:"sender"`
 	Contract         string `bson:"contract"`
@@ -46,7 +46,7 @@ func (fact *IssueFact) DecodeBSON(b []byte, enc *bsonenc.Encoder) error {
 	fact.BaseFact.SetHash(valuehash.NewBytesFromString(u.Hash))
 	fact.BaseFact.SetToken(u.Token)
 
-	var uf AppendFactBSONUnmarshaler
+	var uf IssueFactBSONUnmarshaler
 	if err := bson.Unmarshal(b, &uf); err != nil {
 		return common.DecorateError(err, common.ErrDecodeBson, *fact)
 	}

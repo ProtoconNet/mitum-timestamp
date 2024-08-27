@@ -91,7 +91,7 @@ func CheckDuplication(opr *currencyprocessor.OperationProcessor, op mitumbase.Op
 	case timestamp.Issue:
 		fact, ok := t.Fact().(timestamp.IssueFact)
 		if !ok {
-			return errors.Errorf("expected AppendFact, not %T", t.Fact())
+			return errors.Errorf("expected IssueFact, not %T", t.Fact())
 		}
 		duplicationTypeSenderID = currencyprocessor.DuplicationKey(fact.Sender().String(), DuplicationTypeSender)
 	default:

@@ -151,11 +151,11 @@ func (opp *IssueProcessor) Process( // nolint:dupl
 	_ context.Context, op mitumbase.Operation, getStateFunc mitumbase.GetStateFunc) (
 	[]mitumbase.StateMergeValue, mitumbase.OperationProcessReasonError, error,
 ) {
-	e := util.StringError("failed to process Append")
+	e := util.StringError("failed to process Issue")
 
 	fact, ok := op.Fact().(IssueFact)
 	if !ok {
-		return nil, nil, e.Errorf("expected AppendFact, not %T", op.Fact())
+		return nil, nil, e.Errorf("expected IssueFact, not %T", op.Fact())
 	}
 
 	st, err := state.ExistsState(statetimestamp.DesignStateKey(fact.Contract()), "service design", getStateFunc)

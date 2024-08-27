@@ -23,12 +23,6 @@ var registerModelProcessorPool = sync.Pool{
 	},
 }
 
-//func (CreateService) Process(
-//	_ context.Context, _ mitumbase.GetStateFunc,
-//) ([]mitumbase.StateMergeValue, mitumbase.OperationProcessReasonError, error) {
-//	return nil, nil, nil
-//}
-
 type RegisterModelProcessor struct {
 	*mitumbase.BaseOperationProcessor
 }
@@ -45,7 +39,7 @@ func NewRegisterModelProcessor() currencytypes.GetNewProcessor {
 		nopp := registerModelProcessorPool.Get()
 		opp, ok := nopp.(*RegisterModelProcessor)
 		if !ok {
-			return nil, errors.Errorf("expected servicesRegisterProcessor, not %T", nopp)
+			return nil, errors.Errorf("expected RegisterModelProcessor, not %T", nopp)
 		}
 
 		b, err := mitumbase.NewBaseOperationProcessor(
@@ -140,11 +134,11 @@ func (opp *RegisterModelProcessor) Process(
 	_ context.Context, op mitumbase.Operation, getStateFunc mitumbase.GetStateFunc) (
 	[]mitumbase.StateMergeValue, mitumbase.OperationProcessReasonError, error,
 ) {
-	e := util.StringError("failed to process CreateService")
+	e := util.StringError("failed to process RegisterModel")
 
 	fact, ok := op.Fact().(RegisterModelFact)
 	if !ok {
-		return nil, nil, e.Errorf("expected CreateServiceFact, not %T", op.Fact())
+		return nil, nil, e.Errorf("expected RegisterModelFact, not %T", op.Fact())
 	}
 
 	var sts []mitumbase.StateMergeValue
