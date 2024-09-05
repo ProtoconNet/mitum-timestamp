@@ -22,13 +22,15 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 	var isaacParams *isaac.Params
 	var db isaac.Database
 	var opr *currencyprocessor.OperationProcessor
-	var set *hint.CompatibleSet[isaac.NewOperationProcessorInternalFunc]
+	var setA *hint.CompatibleSet[isaac.NewOperationProcessorInternalFunc]
+	var setB *hint.CompatibleSet[currencycmds.NewOperationProcessorInternalWithProposalFunc]
 
 	if err := util.LoadFromContextOK(pctx,
 		launch.ISAACParamsContextKey, &isaacParams,
 		launch.CenterDatabaseContextKey, &db,
 		currencycmds.OperationProcessorContextKey, &opr,
-		launch.OperationProcessorsMapContextKey, &set,
+		launch.OperationProcessorsMapContextKey, &setA,
+		currencycmds.OperationProcessorsMapBContextKey, &setB,
 	); err != nil {
 		return pctx, err
 	}
@@ -47,14 +49,17 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 		timestamp.NewRegisterModelProcessor(),
 	); err != nil {
 		return pctx, err
-	} else if err := opr.SetProcessor(
+	} else if err := opr.SetProcessorWithProposal(
 		timestamp.IssueHint,
-		timestamp.NewIssueProcessor(db.LastBlockMap),
+		timestamp.NewIssueProcessor(),
 	); err != nil {
 		return pctx, err
 	}
 
-	_ = set.Add(timestamp.IssueHint, func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+	_ = setB.Add(timestamp.IssueHint, func(height base.Height, proposal base.ProposalSignFact, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+		if err := opr.SetProposal(&proposal); err != nil {
+			return nil, err
+		}
 		return opr.New(
 			height,
 			getStatef,
@@ -63,7 +68,7 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 		)
 	})
 
-	_ = set.Add(timestamp.RegisterModelHint, func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
+	_ = setA.Add(timestamp.RegisterModelHint, func(height base.Height, getStatef base.GetStateFunc) (base.OperationProcessor, error) {
 		return opr.New(
 			height,
 			getStatef,
@@ -73,7 +78,8 @@ func POperationProcessorsMap(pctx context.Context) (context.Context, error) {
 	})
 
 	pctx = context.WithValue(pctx, currencycmds.OperationProcessorContextKey, opr)
-	pctx = context.WithValue(pctx, launch.OperationProcessorsMapContextKey, set) //revive:disable-line:modifies-parameter
+	pctx = context.WithValue(pctx, launch.OperationProcessorsMapContextKey, setA)        //revive:disable-line:modifies-parameter
+	pctx = context.WithValue(pctx, currencycmds.OperationProcessorsMapBContextKey, setB) //revive:disable-line:modifies-parameter
 
 	return pctx, nil
 }

@@ -3,7 +3,6 @@ package timestamp
 import (
 	"context"
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	"github.com/ProtoconNet/mitum-currency/v3/operation/processor"
 	"github.com/ProtoconNet/mitum-currency/v3/state"
 	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	statetimestamp "github.com/ProtoconNet/mitum-timestamp/state"
@@ -31,12 +30,13 @@ func (Issue) Process(
 
 type IssueProcessor struct {
 	*mitumbase.BaseOperationProcessor
-	getLastBlockFunc processor.GetLastBlockFunc
+	proposal *mitumbase.ProposalSignFact
 }
 
-func NewIssueProcessor(getLastBlockFunc processor.GetLastBlockFunc) currencytypes.GetNewProcessor {
+func NewIssueProcessor() currencytypes.GetNewProcessorWithProposal {
 	return func(
 		height mitumbase.Height,
+		proposal *mitumbase.ProposalSignFact,
 		getStateFunc mitumbase.GetStateFunc,
 		newPreProcessConstraintFunc mitumbase.NewOperationProcessorProcessFunc,
 		newProcessConstraintFunc mitumbase.NewOperationProcessorProcessFunc,
@@ -56,7 +56,7 @@ func NewIssueProcessor(getLastBlockFunc processor.GetLastBlockFunc) currencytype
 		}
 
 		opp.BaseOperationProcessor = b
-		opp.getLastBlockFunc = getLastBlockFunc
+		opp.proposal = proposal
 
 		return opp, nil
 	}
@@ -133,17 +133,6 @@ func (opp *IssueProcessor) PreProcess(
 		return nil, mitumbase.NewBaseOperationProcessReasonError("getting timestamp item last index failed, %q; %w", fact.Contract(), err), nil
 	}
 
-	_, found, err := opp.getLastBlockFunc()
-	if err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.
-				Errorf("get LastBlock failed; %v", err)), nil
-	} else if !found {
-		return nil, mitumbase.NewBaseOperationProcessReasonError(
-			common.ErrMPreProcess.
-				Errorf("LastBlock not found")), nil
-	}
-
 	return ctx, nil, nil
 }
 
@@ -151,12 +140,7 @@ func (opp *IssueProcessor) Process( // nolint:dupl
 	_ context.Context, op mitumbase.Operation, getStateFunc mitumbase.GetStateFunc) (
 	[]mitumbase.StateMergeValue, mitumbase.OperationProcessReasonError, error,
 ) {
-	e := util.StringError("failed to process Issue")
-
-	fact, ok := op.Fact().(IssueFact)
-	if !ok {
-		return nil, nil, e.Errorf("expected IssueFact, not %T", op.Fact())
-	}
+	fact, _ := op.Fact().(IssueFact)
 
 	st, err := state.ExistsState(statetimestamp.DesignStateKey(fact.Contract()), "service design", getStateFunc)
 	if err != nil {
@@ -197,17 +181,13 @@ func (opp *IssueProcessor) Process( // nolint:dupl
 		st = mitumbase.NewBaseState(mitumbase.NilHeight, k, nil, nil, nil)
 	}
 
-	blockmap, found, err := opp.getLastBlockFunc()
-	if err != nil {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("get LastBlock failed; %w", err), nil
-	} else if !found {
-		return nil, mitumbase.NewBaseOperationProcessReasonError("LastBlock not found"), nil
-	}
+	proposal := *opp.proposal
+	nowTime := uint64(proposal.ProposalFact().ProposedAt().Unix())
 
 	tsItem := types.NewItem(
 		fact.ProjectId(),
 		fact.RequestTimeStamp(),
-		uint64(blockmap.Manifest().ProposedAt().Unix()),
+		nowTime,
 		idx,
 		fact.Data(),
 	)

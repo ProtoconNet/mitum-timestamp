@@ -21,8 +21,9 @@ func NewTestIssueProcessor(tp *test.TestProcessor) TestIssueProcessor {
 }
 
 func (t *TestIssueProcessor) Create() *TestIssueProcessor {
-	t.Opr, _ = NewIssueProcessor(func() (base.BlockMap, bool, error) { return nil, true, nil })(
+	t.Opr, _ = NewIssueProcessor()(
 		base.GenesisHeight,
+		nil,
 		t.GetStateFunc,
 		nil, nil,
 	)
