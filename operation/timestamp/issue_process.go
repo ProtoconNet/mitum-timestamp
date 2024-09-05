@@ -291,6 +291,7 @@ func (opp *IssueProcessor) Process( // nolint:dupl
 }
 
 func (opp *IssueProcessor) Close() error {
+	opp.proposal = nil
 	issueProcessorPool.Put(opp)
 
 	return nil
