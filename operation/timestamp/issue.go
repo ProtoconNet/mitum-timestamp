@@ -133,6 +133,10 @@ func (fact IssueFact) Currency() currencytypes.CurrencyID {
 	return fact.currency
 }
 
+func (fact IssueFact) Addresses() ([]mitumbase.Address, error) {
+	return []mitumbase.Address{fact.sender}, nil
+}
+
 type Issue struct {
 	common.BaseOperation
 }
