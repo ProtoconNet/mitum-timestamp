@@ -2,13 +2,13 @@ package types
 
 import (
 	"bytes"
-	"github.com/ProtoconNet/mitum-currency/v3/common"
-	"github.com/pkg/errors"
 	"sort"
 
+	"github.com/ProtoconNet/mitum-currency/v3/common"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
 	"github.com/ProtoconNet/mitum2/util/valuehash"
+	"github.com/pkg/errors"
 )
 
 var DesignHint = hint.MustNewHint("mitum-timestamp-design-v0.0.1")

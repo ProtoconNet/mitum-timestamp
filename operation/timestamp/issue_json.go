@@ -2,20 +2,21 @@ package timestamp
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
 	"github.com/ProtoconNet/mitum-currency/v3/types"
-	mitumbase "github.com/ProtoconNet/mitum2/base"
+	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
 type IssueFactJSONMarshaler struct {
-	mitumbase.BaseFactJSONMarshaler
-	Sender           mitumbase.Address `json:"sender"`
-	Contract         mitumbase.Address `json:"contract"`
-	ProjectID        string            `json:"project_id"`
-	RequestTimeStamp uint64            `json:"request_timestamp"`
-	Data             string            `json:"data"`
-	Currency         types.CurrencyID  `json:"currency"`
+	base.BaseFactJSONMarshaler
+	Sender           base.Address     `json:"sender"`
+	Contract         base.Address     `json:"contract"`
+	ProjectID        string           `json:"project_id"`
+	RequestTimeStamp uint64           `json:"request_timestamp"`
+	Data             string           `json:"data"`
+	Currency         types.CurrencyID `json:"currency"`
 }
 
 func (fact IssueFact) MarshalJSON() ([]byte, error) {
@@ -31,7 +32,7 @@ func (fact IssueFact) MarshalJSON() ([]byte, error) {
 }
 
 type IssueFactJSONUnmarshaler struct {
-	mitumbase.BaseFactJSONUnmarshaler
+	base.BaseFactJSONUnmarshaler
 	Sender           string `json:"sender"`
 	Contract         string `json:"contract"`
 	ProjectID        string `json:"project_id"`
@@ -55,13 +56,15 @@ func (fact *IssueFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	return nil
 }
 
-type mintMarshaler struct {
+type OperationMarshaler struct {
 	common.BaseOperationJSONMarshaler
+	extras.BaseOperationExtensionsJSONMarshaler
 }
 
 func (op Issue) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(mintMarshaler{
-		BaseOperationJSONMarshaler: op.BaseOperation.JSONMarshaler(),
+	return util.MarshalJSON(OperationMarshaler{
+		BaseOperationJSONMarshaler:           op.BaseOperation.JSONMarshaler(),
+		BaseOperationExtensionsJSONMarshaler: op.BaseOperationExtensions.JSONMarshaler(),
 	})
 }
 
@@ -72,6 +75,13 @@ func (op *Issue) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	}
 
 	op.BaseOperation = ubo
+
+	var ueo extras.BaseOperationExtensions
+	if err := ueo.DecodeJSON(b, enc); err != nil {
+		return common.DecorateError(err, common.ErrDecodeJson, *op)
+	}
+
+	op.BaseOperationExtensions = &ueo
 
 	return nil
 }

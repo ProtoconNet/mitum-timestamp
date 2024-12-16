@@ -4,8 +4,8 @@ import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
 	"github.com/ProtoconNet/mitum-currency/v3/operation/test"
 	"github.com/ProtoconNet/mitum-currency/v3/state/extension"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
-	statetimestamp "github.com/ProtoconNet/mitum-timestamp/state"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-timestamp/state"
 	"github.com/ProtoconNet/mitum-timestamp/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
@@ -31,7 +31,7 @@ func (t *TestIssueProcessor) Create() *TestIssueProcessor {
 }
 
 func (t *TestIssueProcessor) SetCurrency(
-	cid string, am int64, addr base.Address, target []currencytypes.CurrencyID, instate bool,
+	cid string, am int64, addr base.Address, target []ctypes.CurrencyID, instate bool,
 ) *TestIssueProcessor {
 	t.BaseTestOperationProcessorNoItem.SetCurrency(cid, am, addr, target, instate)
 
@@ -39,7 +39,7 @@ func (t *TestIssueProcessor) SetCurrency(
 }
 
 func (t *TestIssueProcessor) SetAmount(
-	am int64, cid currencytypes.CurrencyID, target []currencytypes.Amount,
+	am int64, cid ctypes.CurrencyID, target []ctypes.Amount,
 ) *TestIssueProcessor {
 	t.BaseTestOperationProcessorNoItem.SetAmount(am, cid, target)
 
@@ -47,7 +47,7 @@ func (t *TestIssueProcessor) SetAmount(
 }
 
 func (t *TestIssueProcessor) SetContractAccount(
-	owner base.Address, priv string, amount int64, cid currencytypes.CurrencyID, target []test.Account, inState bool,
+	owner base.Address, priv string, amount int64, cid ctypes.CurrencyID, target []test.Account, inState bool,
 ) *TestIssueProcessor {
 	t.BaseTestOperationProcessorNoItem.SetContractAccount(owner, priv, amount, cid, target, inState)
 
@@ -55,7 +55,7 @@ func (t *TestIssueProcessor) SetContractAccount(
 }
 
 func (t *TestIssueProcessor) SetAccount(
-	priv string, amount int64, cid currencytypes.CurrencyID, target []test.Account, inState bool,
+	priv string, amount int64, cid ctypes.CurrencyID, target []test.Account, inState bool,
 ) *TestIssueProcessor {
 	t.BaseTestOperationProcessorNoItem.SetAccount(priv, amount, cid, target, inState)
 
@@ -94,7 +94,7 @@ func (t *TestIssueProcessor) SetService(
 	pids := []string(nil)
 	design := types.NewDesign(pids...)
 
-	st := common.NewBaseState(base.Height(1), statetimestamp.DesignStateKey(contract), statetimestamp.NewDesignStateValue(design), nil, []util.Hash{})
+	st := common.NewBaseState(base.Height(1), state.DesignStateKey(contract), state.NewDesignStateValue(design), nil, []util.Hash{})
 	t.SetState(st, true)
 
 	cst, found, _ := t.MockGetter.Get(extension.StateKeyContractAccount(contract))
@@ -120,7 +120,7 @@ func (t *TestIssueProcessor) MakeOperation(
 	projectID string,
 	requestTimeStamp uint64,
 	data string,
-	currency currencytypes.CurrencyID,
+	currency ctypes.CurrencyID,
 ) *TestIssueProcessor {
 	op, _ := NewIssue(
 		NewIssueFact(

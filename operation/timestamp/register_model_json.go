@@ -2,17 +2,18 @@ package timestamp
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
 	"github.com/ProtoconNet/mitum-currency/v3/types"
-	mitumbase "github.com/ProtoconNet/mitum2/base"
+	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/encoder"
 )
 
 type RegisterModelFactJSONMarshaler struct {
-	mitumbase.BaseFactJSONMarshaler
-	Sender   mitumbase.Address `json:"sender"`
-	Contract mitumbase.Address `json:"contract"`
-	Currency types.CurrencyID  `json:"currency"`
+	base.BaseFactJSONMarshaler
+	Sender   base.Address     `json:"sender"`
+	Contract base.Address     `json:"contract"`
+	Currency types.CurrencyID `json:"currency"`
 }
 
 func (fact RegisterModelFact) MarshalJSON() ([]byte, error) {
@@ -25,7 +26,7 @@ func (fact RegisterModelFact) MarshalJSON() ([]byte, error) {
 }
 
 type RegisterModelFactJSONUnmarshaler struct {
-	mitumbase.BaseFactJSONUnmarshaler
+	base.BaseFactJSONUnmarshaler
 	Sender   string `json:"sender"`
 	Contract string `json:"contract"`
 	Currency string `json:"currency"`
@@ -46,13 +47,10 @@ func (fact *RegisterModelFact) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	return nil
 }
 
-type registerModelMarshaler struct {
-	common.BaseOperationJSONMarshaler
-}
-
 func (op RegisterModel) MarshalJSON() ([]byte, error) {
-	return util.MarshalJSON(registerModelMarshaler{
-		BaseOperationJSONMarshaler: op.BaseOperation.JSONMarshaler(),
+	return util.MarshalJSON(OperationMarshaler{
+		BaseOperationJSONMarshaler:           op.BaseOperation.JSONMarshaler(),
+		BaseOperationExtensionsJSONMarshaler: op.BaseOperationExtensions.JSONMarshaler(),
 	})
 }
 
@@ -63,6 +61,13 @@ func (op *RegisterModel) DecodeJSON(b []byte, enc encoder.Encoder) error {
 	}
 
 	op.BaseOperation = ubo
+
+	var ueo extras.BaseOperationExtensions
+	if err := ueo.DecodeJSON(b, enc); err != nil {
+		return common.DecorateError(err, common.ErrDecodeJson, *op)
+	}
+
+	op.BaseOperationExtensions = &ueo
 
 	return nil
 }

@@ -2,9 +2,10 @@ package timestamp
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
 	"github.com/ProtoconNet/mitum-timestamp/types"
-	mitumbase "github.com/ProtoconNet/mitum2/base"
+	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
 	"github.com/ProtoconNet/mitum2/util/valuehash"
@@ -17,19 +18,19 @@ var (
 )
 
 type IssueFact struct {
-	mitumbase.BaseFact
-	sender           mitumbase.Address
-	contract         mitumbase.Address
+	base.BaseFact
+	sender           base.Address
+	contract         base.Address
 	projectID        string
 	requestTimeStamp uint64
 	data             string
-	currency         currencytypes.CurrencyID
+	currency         ctypes.CurrencyID
 }
 
 func NewIssueFact(
-	token []byte, sender, contract mitumbase.Address, projectID string,
-	requestTimeStamp uint64, data string, currency currencytypes.CurrencyID) IssueFact {
-	bf := mitumbase.NewBaseFact(IssueFactHint, token)
+	token []byte, sender, contract base.Address, projectID string,
+	requestTimeStamp uint64, data string, currency ctypes.CurrencyID) IssueFact {
+	bf := base.NewBaseFact(IssueFactHint, token)
 	fact := IssueFact{
 		BaseFact:         bf,
 		sender:           sender,
@@ -52,7 +53,7 @@ func (fact IssueFact) IsValid(b []byte) error {
 					"invalid projectID length %v < 1 or > %v", len(fact.projectID), types.MaxProjectIDLen)))
 	}
 
-	if !currencytypes.ReValidSpcecialCh.Match([]byte(fact.projectID)) {
+	if !ctypes.ReValidSpcecialCh.Match([]byte(fact.projectID)) {
 		return common.ErrFactInvalid.Wrap(
 			common.ErrValueInvalid.Wrap(
 				errors.Errorf("projectID ID %s, must match regex `^[^\\s:/?#\\[\\]$@]*$`", fact.projectID)))
@@ -105,15 +106,15 @@ func (fact IssueFact) Bytes() []byte {
 	)
 }
 
-func (fact IssueFact) Token() mitumbase.Token {
+func (fact IssueFact) Token() base.Token {
 	return fact.BaseFact.Token()
 }
 
-func (fact IssueFact) Sender() mitumbase.Address {
+func (fact IssueFact) Sender() base.Address {
 	return fact.sender
 }
 
-func (fact IssueFact) Contract() mitumbase.Address {
+func (fact IssueFact) Contract() base.Address {
 	return fact.contract
 }
 
@@ -129,18 +130,43 @@ func (fact IssueFact) Data() string {
 	return fact.data
 }
 
-func (fact IssueFact) Currency() currencytypes.CurrencyID {
+func (fact IssueFact) Currency() ctypes.CurrencyID {
 	return fact.currency
 }
 
-func (fact IssueFact) Addresses() ([]mitumbase.Address, error) {
-	return []mitumbase.Address{fact.sender}, nil
+func (fact IssueFact) Addresses() ([]base.Address, error) {
+	return []base.Address{fact.sender}, nil
+}
+
+func (fact IssueFact) FeeBase() map[ctypes.CurrencyID][]common.Big {
+	required := make(map[ctypes.CurrencyID][]common.Big)
+	required[fact.Currency()] = []common.Big{common.ZeroBig}
+
+	return required
+}
+
+func (fact IssueFact) FeePayer() base.Address {
+	return fact.sender
+}
+
+func (fact IssueFact) FactUser() base.Address {
+	return fact.sender
+}
+
+func (fact IssueFact) Signer() base.Address {
+	return fact.sender
+}
+
+func (fact IssueFact) ActiveContractOwnerHandlerOnly() [][2]base.Address {
+	return [][2]base.Address{{fact.contract, fact.sender}}
 }
 
 type Issue struct {
-	common.BaseOperation
+	extras.ExtendedOperation
 }
 
 func NewIssue(fact IssueFact) (Issue, error) {
-	return Issue{BaseOperation: common.NewBaseOperation(IssueHint, fact)}, nil
+	return Issue{
+		ExtendedOperation: extras.NewExtendedOperation(IssueHint, fact),
+	}, nil
 }

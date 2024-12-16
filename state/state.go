@@ -2,12 +2,12 @@ package state
 
 import (
 	"fmt"
-	"github.com/ProtoconNet/mitum-currency/v3/common"
-	"github.com/ProtoconNet/mitum-timestamp/types"
 	"strconv"
 	"strings"
 
-	mitumbase "github.com/ProtoconNet/mitum2/base"
+	"github.com/ProtoconNet/mitum-currency/v3/common"
+	"github.com/ProtoconNet/mitum-timestamp/types"
+	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
 	"github.com/pkg/errors"
@@ -19,7 +19,7 @@ var (
 	DesignStateKeySuffix    = "design"
 )
 
-func TimeStampStateKey(addr mitumbase.Address) string {
+func TimeStampStateKey(addr base.Address) string {
 	return fmt.Sprintf("%s:%s", TimeStampStateKeyPrefix, addr.String())
 }
 
@@ -57,7 +57,7 @@ func (sv DesignStateValue) HashBytes() []byte {
 	return sv.Design.Bytes()
 }
 
-func GetDesignFromState(st mitumbase.State) (types.Design, error) {
+func GetDesignFromState(st base.State) (types.Design, error) {
 	v := st.Value()
 	if v == nil {
 		return types.Design{}, errors.Errorf("state value is nil")
@@ -75,7 +75,7 @@ func IsDesignStateKey(key string) bool {
 	return strings.HasPrefix(key, TimeStampStateKeyPrefix) && strings.HasSuffix(key, DesignStateKeySuffix)
 }
 
-func DesignStateKey(addr mitumbase.Address) string {
+func DesignStateKey(addr base.Address) string {
 	return fmt.Sprintf("%s:%s", TimeStampStateKey(addr), DesignStateKeySuffix)
 }
 
@@ -121,7 +121,7 @@ func (sv LastIdxStateValue) HashBytes() []byte {
 	return util.ConcatBytesSlice([]byte(sv.ProjectID), util.Uint64ToBytes(sv.Index))
 }
 
-func GetLastIdxFromState(st mitumbase.State) (uint64, error) {
+func GetLastIdxFromState(st base.State) (uint64, error) {
 	v := st.Value()
 	if v == nil {
 		return 0, errors.Errorf("state value is nil")
@@ -139,7 +139,7 @@ func IsLastIdxStateKey(key string) bool {
 	return strings.HasPrefix(key, TimeStampStateKeyPrefix) && strings.HasSuffix(key, LastIdxStateKeySuffix)
 }
 
-func LastIdxStateKey(addr mitumbase.Address, pid string) string {
+func LastIdxStateKey(addr base.Address, pid string) string {
 	return fmt.Sprintf("%s:%s:%s", TimeStampStateKey(addr), pid, LastIdxStateKeySuffix)
 }
 
@@ -182,7 +182,7 @@ func (sv ItemStateValue) HashBytes() []byte {
 	return sv.Item.Bytes()
 }
 
-func GetItemFromState(st mitumbase.State) (types.Item, error) {
+func GetItemFromState(st base.State) (types.Item, error) {
 	v := st.Value()
 	if v == nil {
 		return types.Item{}, errors.Errorf("State value is nil")
@@ -200,6 +200,6 @@ func IsItemStateKey(key string) bool {
 	return strings.HasPrefix(key, TimeStampStateKeyPrefix) && strings.HasSuffix(key, ItemStateKeySuffix)
 }
 
-func ItemStateKey(addr mitumbase.Address, pid string, index uint64) string {
+func ItemStateKey(addr base.Address, pid string, index uint64) string {
 	return fmt.Sprintf("%s:%s:%s:%s", TimeStampStateKey(addr), pid, strconv.FormatUint(index, 10), ItemStateKeySuffix)
 }

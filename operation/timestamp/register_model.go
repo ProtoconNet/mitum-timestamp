@@ -2,8 +2,9 @@ package timestamp
 
 import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
+	"github.com/ProtoconNet/mitum-currency/v3/operation/extras"
 	"github.com/ProtoconNet/mitum-currency/v3/types"
-	mitumbase "github.com/ProtoconNet/mitum2/base"
+	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
 	"github.com/ProtoconNet/mitum2/util/hint"
 	"github.com/ProtoconNet/mitum2/util/valuehash"
@@ -16,14 +17,14 @@ var (
 )
 
 type RegisterModelFact struct {
-	mitumbase.BaseFact
-	sender   mitumbase.Address
-	contract mitumbase.Address
+	base.BaseFact
+	sender   base.Address
+	contract base.Address
 	currency types.CurrencyID
 }
 
-func NewRegisterModelFact(token []byte, sender, contract mitumbase.Address, currency types.CurrencyID) RegisterModelFact {
-	bf := mitumbase.NewBaseFact(RegisterModelFactHint, token)
+func NewRegisterModelFact(token []byte, sender, contract base.Address, currency types.CurrencyID) RegisterModelFact {
+	bf := base.NewBaseFact(RegisterModelFactHint, token)
 	fact := RegisterModelFact{
 		BaseFact: bf,
 		sender:   sender,
@@ -76,20 +77,43 @@ func (fact RegisterModelFact) Bytes() []byte {
 	)
 }
 
-func (fact RegisterModelFact) Token() mitumbase.Token {
+func (fact RegisterModelFact) Token() base.Token {
 	return fact.BaseFact.Token()
 }
 
-func (fact RegisterModelFact) Sender() mitumbase.Address {
+func (fact RegisterModelFact) Sender() base.Address {
 	return fact.sender
 }
 
-func (fact RegisterModelFact) Contract() mitumbase.Address {
+func (fact RegisterModelFact) Contract() base.Address {
 	return fact.contract
 }
 
-func (fact RegisterModelFact) Addresses() ([]mitumbase.Address, error) {
-	return []mitumbase.Address{fact.sender, fact.contract}, nil
+func (fact RegisterModelFact) Addresses() ([]base.Address, error) {
+	return []base.Address{fact.sender, fact.contract}, nil
+}
+
+func (fact RegisterModelFact) FeeBase() map[types.CurrencyID][]common.Big {
+	required := make(map[types.CurrencyID][]common.Big)
+	required[fact.Currency()] = []common.Big{common.ZeroBig}
+
+	return required
+}
+
+func (fact RegisterModelFact) FeePayer() base.Address {
+	return fact.sender
+}
+
+func (fact RegisterModelFact) FactUser() base.Address {
+	return fact.sender
+}
+
+func (fact RegisterModelFact) Signer() base.Address {
+	return fact.sender
+}
+
+func (fact RegisterModelFact) InActiveContractOwnerHandlerOnly() [][2]base.Address {
+	return [][2]base.Address{{fact.contract, fact.sender}}
 }
 
 func (fact RegisterModelFact) Currency() types.CurrencyID {
@@ -97,9 +121,11 @@ func (fact RegisterModelFact) Currency() types.CurrencyID {
 }
 
 type RegisterModel struct {
-	common.BaseOperation
+	extras.ExtendedOperation
 }
 
 func NewRegisterModel(fact RegisterModelFact) (RegisterModel, error) {
-	return RegisterModel{BaseOperation: common.NewBaseOperation(RegisterModelHint, fact)}, nil
+	return RegisterModel{
+		ExtendedOperation: extras.NewExtendedOperation(RegisterModelHint, fact),
+	}, nil
 }
