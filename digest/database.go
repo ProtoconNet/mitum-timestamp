@@ -3,7 +3,7 @@ package digest
 import (
 	cdigest "github.com/ProtoconNet/mitum-currency/v3/digest"
 	utilc "github.com/ProtoconNet/mitum-currency/v3/digest/util"
-	timestampservice "github.com/ProtoconNet/mitum-timestamp/state"
+	"github.com/ProtoconNet/mitum-timestamp/state"
 	"github.com/ProtoconNet/mitum-timestamp/types"
 	"github.com/ProtoconNet/mitum2/base"
 	utilm "github.com/ProtoconNet/mitum2/util"
@@ -48,7 +48,7 @@ func TimestampDesign(st *cdigest.Database, contract string) (types.Design, base.
 	}
 
 	if sta != nil {
-		de, err := timestampservice.GetDesignFromState(sta)
+		de, err := state.GetDesignFromState(sta)
 		if err != nil {
 			return types.Design{}, nil, err
 		}
@@ -86,7 +86,7 @@ func TimestampItem(db *cdigest.Database, contract, project string, idx uint64) (
 	}
 
 	if st != nil {
-		it, err := timestampservice.GetItemFromState(st)
+		it, err := state.GetItemFromState(st)
 		if err != nil {
 			return types.Item{}, nil, err
 		}

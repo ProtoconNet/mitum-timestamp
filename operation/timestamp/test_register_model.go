@@ -4,8 +4,8 @@ import (
 	"github.com/ProtoconNet/mitum-currency/v3/common"
 	"github.com/ProtoconNet/mitum-currency/v3/operation/test"
 	"github.com/ProtoconNet/mitum-currency/v3/state/extension"
-	currencytypes "github.com/ProtoconNet/mitum-currency/v3/types"
-	statetimestamp "github.com/ProtoconNet/mitum-timestamp/state"
+	ctypes "github.com/ProtoconNet/mitum-currency/v3/types"
+	"github.com/ProtoconNet/mitum-timestamp/state"
 	"github.com/ProtoconNet/mitum-timestamp/types"
 	"github.com/ProtoconNet/mitum2/base"
 	"github.com/ProtoconNet/mitum2/util"
@@ -30,7 +30,7 @@ func (t *TestRegisterModelProcessor) Create() *TestRegisterModelProcessor {
 }
 
 func (t *TestRegisterModelProcessor) SetCurrency(
-	cid string, am int64, addr base.Address, target []currencytypes.CurrencyID, instate bool,
+	cid string, am int64, addr base.Address, target []ctypes.CurrencyID, instate bool,
 ) *TestRegisterModelProcessor {
 	t.BaseTestOperationProcessorNoItem.SetCurrency(cid, am, addr, target, instate)
 
@@ -38,7 +38,7 @@ func (t *TestRegisterModelProcessor) SetCurrency(
 }
 
 func (t *TestRegisterModelProcessor) SetAmount(
-	am int64, cid currencytypes.CurrencyID, target []currencytypes.Amount,
+	am int64, cid ctypes.CurrencyID, target []ctypes.Amount,
 ) *TestRegisterModelProcessor {
 	t.BaseTestOperationProcessorNoItem.SetAmount(am, cid, target)
 
@@ -46,7 +46,7 @@ func (t *TestRegisterModelProcessor) SetAmount(
 }
 
 func (t *TestRegisterModelProcessor) SetContractAccount(
-	owner base.Address, priv string, amount int64, cid currencytypes.CurrencyID, target []test.Account, inState bool,
+	owner base.Address, priv string, amount int64, cid ctypes.CurrencyID, target []test.Account, inState bool,
 ) *TestRegisterModelProcessor {
 	t.BaseTestOperationProcessorNoItem.SetContractAccount(owner, priv, amount, cid, target, inState)
 
@@ -54,7 +54,7 @@ func (t *TestRegisterModelProcessor) SetContractAccount(
 }
 
 func (t *TestRegisterModelProcessor) SetAccount(
-	priv string, amount int64, cid currencytypes.CurrencyID, target []test.Account, inState bool,
+	priv string, amount int64, cid ctypes.CurrencyID, target []test.Account, inState bool,
 ) *TestRegisterModelProcessor {
 	t.BaseTestOperationProcessorNoItem.SetAccount(priv, amount, cid, target, inState)
 
@@ -81,7 +81,7 @@ func (t *TestRegisterModelProcessor) SetService(
 	pids := []string(nil)
 	design := types.NewDesign(pids...)
 
-	st := common.NewBaseState(base.Height(1), statetimestamp.DesignStateKey(contract), statetimestamp.NewDesignStateValue(design), nil, []util.Hash{})
+	st := common.NewBaseState(base.Height(1), state.DesignStateKey(contract), state.NewDesignStateValue(design), nil, []util.Hash{})
 	t.SetState(st, true)
 
 	cst, found, _ := t.MockGetter.Get(extension.StateKeyContractAccount(contract))
@@ -101,7 +101,7 @@ func (t *TestRegisterModelProcessor) SetService(
 }
 
 func (t *TestRegisterModelProcessor) MakeOperation(
-	sender base.Address, privatekey base.Privatekey, contract base.Address, currency currencytypes.CurrencyID,
+	sender base.Address, privatekey base.Privatekey, contract base.Address, currency ctypes.CurrencyID,
 ) *TestRegisterModelProcessor {
 	op, _ := NewRegisterModel(
 		NewRegisterModelFact(
