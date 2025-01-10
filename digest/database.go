@@ -13,13 +13,7 @@ import (
 )
 
 var (
-	defaultColNameAccount         = "digest_ac"
-	defaultColNameContractAccount = "digest_ca"
-	defaultColNameBalance         = "digest_bl"
-	defaultColNameCurrency        = "digest_cr"
-	defaultColNameOperation       = "digest_op"
-	defaultColNameTimeStamp       = "digest_ts"
-	defaultColNameBlock           = "digest_bm"
+	DefaultColNameTimeStamp = "digest_ts"
 )
 
 func TimestampDesign(st *cdigest.Database, contract string) (types.Design, base.State, error) {
@@ -32,7 +26,7 @@ func TimestampDesign(st *cdigest.Database, contract string) (types.Design, base.
 	)
 	var sta base.State
 	if err := st.MongoClient().GetByFilter(
-		defaultColNameTimeStamp,
+		DefaultColNameTimeStamp,
 		q,
 		func(res *mongo.SingleResult) error {
 			i, err := cdigest.LoadState(res.Decode, st.Encoders())
@@ -70,7 +64,7 @@ func TimestampItem(db *cdigest.Database, contract, project string, idx uint64) (
 	)
 	var st base.State
 	if err := db.MongoClient().GetByFilter(
-		defaultColNameTimeStamp,
+		DefaultColNameTimeStamp,
 		q,
 		func(res *mongo.SingleResult) error {
 			i, err := cdigest.LoadState(res.Decode, db.Encoders())

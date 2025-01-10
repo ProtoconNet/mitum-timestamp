@@ -105,42 +105,42 @@ func (bs *BlockSession) Commit(_ context.Context) error {
 	}()
 
 	_, err := bs.st.MongoClient().WithSession(func(txnCtx mongo.SessionContext, collection func(string) *mongo.Collection) (interface{}, error) {
-		if err := bs.writeModels(txnCtx, defaultColNameBlock, bs.blockModels); err != nil {
+		if err := bs.writeModels(txnCtx, cdigest.DefaultColNameBlock, bs.blockModels); err != nil {
 			return nil, err
 		}
 
 		if len(bs.operationModels) > 0 {
-			if err := bs.writeModels(txnCtx, defaultColNameOperation, bs.operationModels); err != nil {
+			if err := bs.writeModels(txnCtx, cdigest.DefaultColNameOperation, bs.operationModels); err != nil {
 				return nil, err
 			}
 		}
 
 		if len(bs.currencyModels) > 0 {
-			if err := bs.writeModels(txnCtx, defaultColNameCurrency, bs.currencyModels); err != nil {
+			if err := bs.writeModels(txnCtx, cdigest.DefaultColNameCurrency, bs.currencyModels); err != nil {
 				return nil, err
 			}
 		}
 
 		if len(bs.accountModels) > 0 {
-			if err := bs.writeModels(txnCtx, defaultColNameAccount, bs.accountModels); err != nil {
+			if err := bs.writeModels(txnCtx, cdigest.DefaultColNameAccount, bs.accountModels); err != nil {
 				return nil, err
 			}
 		}
 
 		if len(bs.contractAccountModels) > 0 {
-			if err := bs.writeModels(txnCtx, defaultColNameContractAccount, bs.contractAccountModels); err != nil {
+			if err := bs.writeModels(txnCtx, cdigest.DefaultColNameContractAccount, bs.contractAccountModels); err != nil {
 				return nil, err
 			}
 		}
 
 		if len(bs.balanceModels) > 0 {
-			if err := bs.writeModels(txnCtx, defaultColNameBalance, bs.balanceModels); err != nil {
+			if err := bs.writeModels(txnCtx, cdigest.DefaultColNameBalance, bs.balanceModels); err != nil {
 				return nil, err
 			}
 		}
 
 		if len(bs.timestampModels) > 0 {
-			if err := bs.writeModels(txnCtx, defaultColNameTimeStamp, bs.timestampModels); err != nil {
+			if err := bs.writeModels(txnCtx, DefaultColNameTimeStamp, bs.timestampModels); err != nil {
 				return nil, err
 			}
 		}
