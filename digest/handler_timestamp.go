@@ -32,7 +32,7 @@ func (hd *Handlers) handleTimeStampDesign(w http.ResponseWriter, r *http.Request
 		cdigest.HTTP2WriteHalBytes(hd.encoder, w, v.([]byte), http.StatusOK)
 
 		if !shared {
-			cdigest.HTTP2WriteCache(w, cacheKey, time.Second*3)
+			cdigest.HTTP2WriteCache(w, cacheKey, time.Millisecond*100)
 		}
 	}
 }
@@ -120,7 +120,7 @@ func (hd *Handlers) handleTimeStampItem(w http.ResponseWriter, r *http.Request) 
 		cdigest.HTTP2WriteHalBytes(hd.encoder, w, v.([]byte), http.StatusOK)
 
 		if !shared {
-			cdigest.HTTP2WriteCache(w, cachekey, time.Second*3)
+			cdigest.HTTP2WriteCache(w, cachekey, time.Hour*3000)
 		}
 	}
 }

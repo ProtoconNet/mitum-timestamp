@@ -101,7 +101,7 @@ func (opp *RegisterModelProcessor) Process(
 
 	st, _ := cstate.ExistsState(cestate.StateKeyContractAccount(fact.Contract()), "contract account", getStateFunc)
 	ca, _ := cestate.StateContractAccountValue(st)
-	nca := ca.SetIsActive(true)
+	nca := ca.SetActive(true)
 
 	sts = append(sts, cstate.NewStateMergeValue(
 		cestate.StateKeyContractAccount(fact.Contract()),

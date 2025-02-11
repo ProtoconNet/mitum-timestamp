@@ -2,7 +2,6 @@ package cmds
 
 import (
 	"context"
-
 	"github.com/ProtoconNet/mitum-timestamp/operation/timestamp"
 
 	currencycmds "github.com/ProtoconNet/mitum-currency/v3/cmds"
