@@ -79,7 +79,7 @@ func (opp *IssueProcessor) PreProcess(
 	if err := cstate.CheckExistsState(state.DesignStateKey(fact.Contract()), getStateFunc); err != nil {
 		return nil, base.NewBaseOperationProcessReasonError(
 			common.ErrMPreProcess.
-				Wrap(common.ErrMServiceNF).Errorf("timestamp service for contract account %v",
+				Wrap(common.ErrMServiceNF).Errorf("timestamp service state for contract account %v",
 				fact.Contract(),
 			)), nil
 	}
